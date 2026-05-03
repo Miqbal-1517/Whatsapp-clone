@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+        <title>WhatsApp Clone - Real Time Chat</title>
+        <link rel="stylesheet" href="styles.css">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+
+<body>
+        <!-- Login Screen -->
+        <div id="login-container" class="login-container">
+                <div class="login-card">
+                        <div class="logo">
+                                <i class="fab fa-whatsapp"></i>
+                                <h2>WhatsApp </h2>
+                                <p class="subtitle">Real Time Chat Application</p>
+                        </div>
+                        <input type="text" id="username" placeholder="Enter your username" maxlength="20"
+                                autocomplete="off">
+                        <button onclick="joinChat()">Join Chat <i class="fas fa-arrow-right"></i></button>
+                        <div class="developer-credit">
+                                <i class="fas fa-code"></i> Created by <strong>Muhammad Iqbal</strong>
+                        </div>
+                </div>
+        </div>
+
+        <!-- Main Chat Container -->
+        <div id="chat-container" class="chat-container" style="display: none;">
+                <!-- Sidebar for Mobile -->
+                <div id="sidebar" class="sidebar">
+                        <div class="sidebar-header">
+                                <div class="user-info">
+                                        <i class="fas fa-user-circle"></i>
+                                        <div class="user-details">
+                                                <span id="current-user" class="current-username"></span>
+                                                <span class="online-status">Online</span>
+                                        </div>
+                                </div>
+                                <button id="close-sidebar" class="close-sidebar" onclick="toggleSidebar()">
+                                        <i class="fas fa-times"></i>
+                                </button>
+                        </div>
+                        <div class="online-count-box">
+                                <i class="fas fa-circle online-icon"></i>
+                                <span id="online-count">0</span> Online Users
+                        </div>
+                        <div class="users-list">
+                                <h3><i class="fas fa-users"></i> Active Chats</h3>
+                                <div id="users-list"></div>
+                        </div>
+                </div>
+
+                <!-- Main Chat Area -->
+                <div class="chat-area">
+                        <div class="chat-header">
+                                <button id="menu-btn" class="menu-btn" onclick="toggleSidebar()">
+                                        <i class="fas fa-bars"></i>
+                                </button>
+                                <div class="chat-header-info">
+                                        <i class="fas fa-comments"></i>
+                                        <h3>Group Chat</h3>
+                                </div>
+                                <div class="typing-indicator" id="typing-indicator"></div>
+                        </div>
+
+                        <div class="messages-container" id="messages-container">
+                                <div class="welcome-message">
+                                        <i class="fab fa-whatsapp"></i>
+                                        <h3>Welcome to WhatsApp!</h3>
+                                        <p>Start your conversation now</p>
+                                </div>
+                        </div>
+
+                        <div class="message-input-container">
+                                <div class="message-input-wrapper">
+                                        <textarea id="message-input" placeholder="Type a message..." maxlength="500"
+                                                rows="1"></textarea>
+                                        <button onclick="sendMessage()" id="send-btn">
+                                                <i class="fas fa-paper-plane"></i>
+                                        </button>
+                                </div>
+                        </div>
+                </div>
+        </div>
+
+        <!-- Overlay for mobile sidebar -->
+        <div id="overlay" class="overlay" onclick="toggleSidebar()"></div>
+
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="script.js"></script>
+</body>
+
+</html>
