@@ -34,14 +34,17 @@
                         <div class="sidebar-header">
                                 <div class="user-info">
                                         <i class="fas fa-user-circle"></i>
-                                        <div class="user-details">
-                                                <span id="current-user" class="current-username"></span>
-                                                <span class="online-status">Online</span>
-                                        </div>
+                                        <span id="current-user"></span>
                                 </div>
-                                <button id="close-sidebar" class="close-sidebar" onclick="toggleSidebar()">
-                                        <i class="fas fa-times"></i>
-                                </button>
+                                <div class="online-count">
+                                        <i class="fas fa-circle"></i>
+                                        <span id="online-count">0</span> online
+                                </div>
+                                <div class="developer-badge"
+                                        style="margin-top: 12px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.2); font-size: 9px; text-align: center;">
+                                        <i class="fas fa-crown"></i> Developed by <strong>Muhammad Iqbal</strong><br>
+                                        <small>Director of IT Programs, MIT</small>
+                                </div>
                         </div>
                         <div class="online-count-box">
                                 <i class="fas fa-circle online-icon"></i>
@@ -61,7 +64,13 @@
                                 </button>
                                 <div class="chat-header-info">
                                         <i class="fas fa-comments"></i>
-                                        <h3>Group Chat</h3>
+                                        <div>
+                                                <h3 style="margin: 0;">Group Chat</h3>
+                                                <small style="font-size: 10px; color: #25D366; display: block;">
+                                                        <i class="fas fa-code"></i> Created by Muhammad Iqbal | Director
+                                                        of IT Programs, MIT
+                                                </small>
+                                        </div>
                                 </div>
                                 <div class="typing-indicator" id="typing-indicator"></div>
                         </div>
@@ -69,8 +78,16 @@
                         <div class="messages-container" id="messages-container">
                                 <div class="welcome-message">
                                         <i class="fab fa-whatsapp"></i>
-                                        <h3>Welcome to WhatsApp!</h3>
+                                        <h3>Welcome to WhatsApp Clone!</h3>
                                         <p>Start your conversation now</p>
+                                        <div
+                                                style="margin-top: 20px; padding: 10px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 12px;">
+                                                <i class="fas fa-code" style="color: #667eea;"></i>
+                                                <span style="font-size: 11px; color: #666;">Created by </span>
+                                                <strong style="color: #25D366;">Muhammad Iqbal</strong>
+                                                <span style="font-size: 11px; color: #666;"> | Director of IT Programs,
+                                                        MIT</span>
+                                        </div>
                                 </div>
                         </div>
 

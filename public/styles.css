@@ -377,30 +377,88 @@ body {
 }
 
 /* Message Input */
+/* Message Input - Professional Size */
 .message-input-container {
         padding: 15px 20px;
         background: #f0f2f5;
+        border-top: 1px solid #e0e0e0;
 }
 
 .message-input-wrapper {
         display: flex;
-        gap: 10px;
+        gap: 12px;
         background: white;
-        padding: 8px 15px;
-        border-radius: 25px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        align-items: flex-end;
+        padding: 12px 18px;
+        border-radius: 30px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        align-items: center;
 }
 
 #message-input {
         flex: 1;
         border: none;
         outline: none;
-        font-size: 15px;
-        padding: 8px 0;
+        font-size: 16px;
+        padding: 10px 0;
         resize: none;
         font-family: inherit;
-        max-height: 100px;
+        max-height: 120px;
+        line-height: 1.4;
+        background: transparent;
+}
+
+#message-input:focus {
+        outline: none;
+}
+
+#send-btn {
+        background: #25D366;
+        border: none;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+}
+
+#send-btn:hover {
+        transform: scale(1.05);
+        background: #128C7E;
+}
+
+#send-btn i {
+        font-size: 18px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+        .message-input-container {
+                padding: 10px 15px;
+        }
+
+        .message-input-wrapper {
+                padding: 8px 15px;
+                gap: 8px;
+        }
+
+        #message-input {
+                font-size: 15px;
+                padding: 8px 0;
+        }
+
+        #send-btn {
+                width: 38px;
+                height: 38px;
+        }
+
+        #send-btn i {
+                font-size: 16px;
+        }
 }
 
 #send-btn {
@@ -519,5 +577,36 @@ body {
 
         .current-username {
                 font-size: 16px;
+        }
+}
+
+/* Developer Badge Styling */
+.developer-badge {
+        animation: fadeIn 0.5s ease;
+        line-height: 1.4;
+}
+
+.developer-badge i {
+        margin-right: 4px;
+}
+
+.developer-badge strong {
+        color: #ffd700;
+}
+
+.developer-badge small {
+        font-size: 8px;
+        opacity: 0.8;
+}
+
+@keyframes fadeIn {
+        from {
+                opacity: 0;
+                transform: translateY(10px);
+        }
+
+        to {
+                opacity: 1;
+                transform: translateY(0);
         }
 }
