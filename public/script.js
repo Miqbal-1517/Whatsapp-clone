@@ -22,13 +22,17 @@ function joinChat() {
         currentUser = username;
         socket.emit('user-join', username);
 
-        // Hide login, show chat
         document.getElementById('login-container').style.display = 'none';
         document.getElementById('chat-container').style.display = 'flex';
         document.getElementById('current-user').textContent = username;
+
+        // Focus on message input after joining
+        setTimeout(() => {
+                const msgInput = document.getElementById('message-input');
+                if (msgInput) msgInput.focus();
+        }, 500);
 }
 
-// Receive users list
 socket.on('users-list', (users) => {
         const usersListDiv = document.getElementById('users-list');
         const otherUsers = users.filter(user => user !== currentUser);
@@ -46,30 +50,24 @@ socket.on('users-list', (users) => {
         }
 });
 
-// Update online count
 socket.on('user-count', (count) => {
         document.getElementById('online-count').textContent = count;
 });
 
-// User joined notification
 socket.on('user-joined', (data) => {
         addSystemMessage(`${escapeHtml(data.username)} joined the chat`);
 });
 
-// User left notification
 socket.on('user-left', (data) => {
         addSystemMessage(`${escapeHtml(data.username)} left the chat`);
 });
 
-// Receive message - FIXED: Only add message once
 socket.on('receive-message', (message) => {
-        // Only add if message is not from current user (handled separately)
         if (message.username !== currentUser) {
                 addMessageToChat(message);
         }
 });
 
-// Typing indicator
 let typingTimeout;
 socket.on('user-typing', ({ username, isTyping }) => {
         const indicator = document.getElementById('typing-indicator');
@@ -80,12 +78,10 @@ socket.on('user-typing', ({ username, isTyping }) => {
         }
 });
 
-// Private message
 socket.on('private-message', ({ from, message, timestamp }) => {
         addPrivateMessage(from, message, timestamp);
 });
 
-// Private message sent confirmation
 socket.on('private-message-sent', ({ from, to, message, timestamp }) => {
         addSystemMessage(`🔒 Private message sent to ${to}`);
 });
@@ -100,10 +96,8 @@ function sendMessage() {
                 content: message
         };
 
-        // Send to server
         socket.emit('send-message', messageData);
 
-        // Add message to own chat immediately
         addMessageToChat({
                 username: currentUser,
                 content: message,
@@ -111,7 +105,6 @@ function sendMessage() {
                 id: Date.now()
         });
 
-        // Clear input
         input.value = '';
         input.style.height = 'auto';
         input.focus();
@@ -140,7 +133,6 @@ function addMessageToChat(message) {
         container.appendChild(messageDiv);
         container.scrollTop = container.scrollHeight;
 
-        // Remove welcome message if exists
         const welcomeMsg = container.querySelector('.welcome-message');
         if (welcomeMsg && container.children.length > 1) {
                 welcomeMsg.remove();
@@ -155,7 +147,6 @@ function addSystemMessage(text) {
         container.appendChild(systemDiv);
         container.scrollTop = container.scrollHeight;
 
-        // Remove welcome message if exists
         const welcomeMsg = container.querySelector('.welcome-message');
         if (welcomeMsg) {
                 welcomeMsg.remove();
@@ -191,7 +182,6 @@ function sendPrivateMessage(to) {
         }
 }
 
-// Typing indicator
 let isTyping = false;
 const messageInput = document.getElementById('message-input');
 
@@ -212,7 +202,6 @@ if (messageInput) {
         });
 }
 
-// Send message on Enter (Shift+Enter for new line)
 messageInput?.addEventListener('keypress', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -220,38 +209,52 @@ messageInput?.addEventListener('keypress', (e) => {
         }
 });
 
-// Escape HTML to prevent XSS
 function escapeHtml(text) {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
 }
 
-// Mobile sidebar toggle
 function toggleSidebar() {
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('overlay');
 
-        sidebar.classList.toggle('active');
-        overlay.classList.toggle('active');
+        sidebar?.classList.toggle('active');
+        overlay?.classList.toggle('active');
 }
 
-// Close sidebar when clicking outside
-document.addEventListener('click', (e) => {
-        const sidebar = document.getElementById('sidebar');
-        const menuBtn = document.getElementById('menu-btn');
-        const overlay = document.getElementById('overlay');
-
-        if (overlay.classList.contains('active') &&
-                !sidebar.contains(e.target) &&
-                !menuBtn.contains(e.target)) {
-                toggleSidebar();
-        }
-});
-
-// Focus input on load
 if (messageInput) {
         setTimeout(() => messageInput.focus(), 100);
 }
 
 console.log('✅ Chat application loaded successfully!');
+
+// RAILWAY FIX - Force show text box
+setTimeout(function () {
+        const textarea = document.getElementById('message-input');
+        const sendBtn = document.getElementById('send-btn');
+        const inputContainer = document.querySelector('.message-input-container');
+        const chatArea = document.querySelector('.chat-area');
+        const messageContainer = document.querySelector('.messages-container');
+
+        if (textarea) {
+                textarea.style.display = 'flex';
+                textarea.style.visibility = 'visible';
+                textarea.style.opacity = '1';
+                console.log('✅ Text box found and shown');
+        } else {
+                console.log('❌ Text box NOT found - Check HTML');
+        }
+
+        if (inputContainer) {
+                inputContainer.style.display = 'flex';
+                inputContainer.style.visibility = 'visible';
+                inputContainer.style.opacity = '1';
+        }
+
+        if (sendBtn) {
+                sendBtn.style.display = 'flex';
+        }
+
+        console.log('✅ Railway fix applied');
+}, 500);
