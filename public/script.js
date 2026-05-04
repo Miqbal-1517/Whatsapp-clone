@@ -63,8 +63,10 @@ socket.on('user-left', (data) => {
 });
 
 socket.on('receive-message', (message) => {
+        // Sirf doosron ke messages add karo
         if (message.username !== currentUser) {
                 addMessageToChat(message);
+                console.log('📥 Received from:', message.username);
         }
 });
 
@@ -258,3 +260,8 @@ setTimeout(function () {
 
         console.log('✅ Railway fix applied');
 }, 500);
+// Sender ke liye special event (duplicate se bachne ke liye)
+socket.on('self-message', (message) => {
+        addMessageToChat(message);
+        console.log('✍️ Self message added');
+});

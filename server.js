@@ -87,21 +87,24 @@ io.on('connection', (socket) => {
         });
 
         // Handle disconnection
-        socket.on('disconnect', () => {
-                const username = users.get(socket.id);
-                if (username) {
-                        users.delete(socket.id);
-                        io.emit('user-left', {
-                                username: username,
-                                timestamp: new Date().toISOString()
-                        });
-                        io.emit('user-count', users.size);
+        socket.on('send-message', (messageData) => {
+                const senderUsername = users.get(socket.id);
 
-                        // Update users list for everyone
-                        const userList = Array.from(users.values());
-                        io.emit('users-list', userList);
-                }
-                console.log('User disconnected:', socket.id);
+                const message = {
+                        id: Date.now() + Math.random(),
+                        username: senderUsername,
+                        content: messageData.content.trim(),
+                        timestamp: new Date().toISOString()
+                };
+
+                console.log('📨 Message from:', senderUsername);
+
+                // Sirf DOOSRON users ko bhejo (sender ko nahi)
+                socket.broadcast.emit('receive-message', message);
+
+                // Sender ko khud dikhane ke liye (apni chat mein)
+                // Ye alag se bhej rahe hain taake duplicate na ho
+                socket.emit('self-message', message);
         });
 });
 
