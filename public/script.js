@@ -1,6 +1,11 @@
 const socket = io();
 let currentUser = '';
 
+// Voice Recording Variables
+let mediaRecorder;
+let audioChunks = [];
+let isRecording = false;
+
 // Auto-resize textarea
 const textarea = document.getElementById('message-input');
 if (textarea) {
@@ -24,9 +29,8 @@ function joinChat() {
 
         document.getElementById('login-container').style.display = 'none';
         document.getElementById('chat-container').style.display = 'flex';
-        document.getElementById('current-user').textContent = username;
+        document.getElementById('current-user').textContent = currentUser;
 
-        // Focus on message input after joining
         setTimeout(() => {
                 const msgInput = document.getElementById('message-input');
                 if (msgInput) msgInput.focus();
@@ -62,14 +66,29 @@ socket.on('user-left', (data) => {
         addSystemMessage(`${escapeHtml(data.username)} left the chat`);
 });
 
+// Text Message Handlers
 socket.on('receive-message', (message) => {
-        // Sirf doosron ke messages add karo
         if (message.username !== currentUser) {
                 addMessageToChat(message);
-                console.log('📥 Received from:', message.username);
         }
 });
 
+socket.on('self-message', (message) => {
+        addMessageToChat(message);
+});
+
+// Voice Message Handlers
+socket.on('receive-voice', (data) => {
+        if (data.username !== currentUser) {
+                addVoiceMessageToChat(data);
+        }
+});
+
+socket.on('self-voice', (data) => {
+        addVoiceMessageToChat(data);
+});
+
+// Typing Indicator
 let typingTimeout;
 socket.on('user-typing', ({ username, isTyping }) => {
         const indicator = document.getElementById('typing-indicator');
@@ -80,6 +99,7 @@ socket.on('user-typing', ({ username, isTyping }) => {
         }
 });
 
+// Private Message Handlers
 socket.on('private-message', ({ from, message, timestamp }) => {
         addPrivateMessage(from, message, timestamp);
 });
@@ -94,18 +114,8 @@ function sendMessage() {
 
         if (!message) return;
 
-        const messageData = {
-                content: message
-        };
-
+        const messageData = { content: message };
         socket.emit('send-message', messageData);
-
-        addMessageToChat({
-                username: currentUser,
-                content: message,
-                timestamp: new Date().toISOString(),
-                id: Date.now()
-        });
 
         input.value = '';
         input.style.height = 'auto';
@@ -130,6 +140,40 @@ function addMessageToChat(message) {
             <span class="message-time">${time}</span>
         </div>
         <div class="message-text">${escapeHtml(message.content)}</div>
+    `;
+
+        container.appendChild(messageDiv);
+        container.scrollTop = container.scrollHeight;
+
+        const welcomeMsg = container.querySelector('.welcome-message');
+        if (welcomeMsg && container.children.length > 1) {
+                welcomeMsg.remove();
+        }
+}
+
+function addVoiceMessageToChat(data) {
+        const container = document.getElementById('messages-container');
+        const isSent = data.username === currentUser;
+
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${isSent ? 'message-sent' : 'message-received'}`;
+
+        const time = new Date(data.timestamp).toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit'
+        });
+
+        messageDiv.innerHTML = `
+        <div class="message-header">
+            <span class="message-username">${escapeHtml(data.username)} <i class="fas fa-microphone" style="font-size: 10px;"></i></span>
+            <span class="message-time">${time}</span>
+        </div>
+        <div class="message-text">
+            <audio controls style="max-width: 200px; height: 36px;">
+                <source src="${data.audio}" type="audio/webm">
+                Your browser does not support audio element.
+            </audio>
+        </div>
     `;
 
         container.appendChild(messageDiv);
@@ -184,6 +228,7 @@ function sendPrivateMessage(to) {
         }
 }
 
+// Typing indicator
 let isTyping = false;
 const messageInput = document.getElementById('message-input');
 
@@ -211,6 +256,69 @@ messageInput?.addEventListener('keypress', (e) => {
         }
 });
 
+// Voice Recording Functions
+const micBtn = document.getElementById('mic-btn');
+const recordingStatus = document.getElementById('recording-status');
+
+if (micBtn) {
+        micBtn.addEventListener('mousedown', startRecording);
+        micBtn.addEventListener('mouseup', stopRecording);
+        micBtn.addEventListener('mouseleave', stopRecording);
+        micBtn.addEventListener('touchstart', startRecording);
+        micBtn.addEventListener('touchend', stopRecording);
+}
+
+function startRecording(e) {
+        e.preventDefault();
+
+        navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                        mediaRecorder = new MediaRecorder(stream);
+                        audioChunks = [];
+
+                        mediaRecorder.ondataavailable = event => {
+                                audioChunks.push(event.data);
+                        };
+
+                        mediaRecorder.onstop = () => {
+                                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                                sendVoiceMessage(audioBlob);
+                                stream.getTracks().forEach(track => track.stop());
+                                recordingStatus.style.display = 'none';
+                        };
+
+                        mediaRecorder.start();
+                        isRecording = true;
+                        micBtn.classList.add('recording');
+                        recordingStatus.style.display = 'block';
+                })
+                .catch(err => {
+                        console.error('Microphone error:', err);
+                        alert('Please allow microphone access to send voice messages');
+                });
+}
+
+function stopRecording() {
+        if (mediaRecorder && isRecording) {
+                mediaRecorder.stop();
+                isRecording = false;
+                micBtn.classList.remove('recording');
+        }
+}
+
+function sendVoiceMessage(audioBlob) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+                const base64Audio = reader.result;
+                socket.emit('voice-message', {
+                        audio: base64Audio,
+                        username: currentUser,
+                        timestamp: new Date().toISOString()
+                });
+        };
+        reader.readAsDataURL(audioBlob);
+}
+
 function escapeHtml(text) {
         const div = document.createElement('div');
         div.textContent = text;
@@ -220,7 +328,6 @@ function escapeHtml(text) {
 function toggleSidebar() {
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('overlay');
-
         sidebar?.classList.toggle('active');
         overlay?.classList.toggle('active');
 }
@@ -229,39 +336,4 @@ if (messageInput) {
         setTimeout(() => messageInput.focus(), 100);
 }
 
-console.log('✅ Chat application loaded successfully!');
-
-// RAILWAY FIX - Force show text box
-setTimeout(function () {
-        const textarea = document.getElementById('message-input');
-        const sendBtn = document.getElementById('send-btn');
-        const inputContainer = document.querySelector('.message-input-container');
-        const chatArea = document.querySelector('.chat-area');
-        const messageContainer = document.querySelector('.messages-container');
-
-        if (textarea) {
-                textarea.style.display = 'flex';
-                textarea.style.visibility = 'visible';
-                textarea.style.opacity = '1';
-                console.log('✅ Text box found and shown');
-        } else {
-                console.log('❌ Text box NOT found - Check HTML');
-        }
-
-        if (inputContainer) {
-                inputContainer.style.display = 'flex';
-                inputContainer.style.visibility = 'visible';
-                inputContainer.style.opacity = '1';
-        }
-
-        if (sendBtn) {
-                sendBtn.style.display = 'flex';
-        }
-
-        console.log('✅ Railway fix applied');
-}, 500);
-// Sender ke liye special event (duplicate se bachne ke liye)
-socket.on('self-message', (message) => {
-        addMessageToChat(message);
-        console.log('✍️ Self message added');
-});
+console.log('✅ Chat application loaded successfully with voice feature!');

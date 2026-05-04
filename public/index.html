@@ -4,7 +4,7 @@
 <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-        <title>WhatsApp Clone - Created by Muhammad Iqbal</title>
+        <title>WhatsApp Clone - Voice Chat | Muhammad Iqbal</title>
         <link rel="stylesheet" href="styles.css">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -16,7 +16,7 @@
                         <div class="logo">
                                 <i class="fab fa-whatsapp"></i>
                                 <h2>WhatsApp Clone</h2>
-                                <p class="subtitle">Real Time Chat Application</p>
+                                <p class="subtitle">Real Time Chat with Voice Messages</p>
                         </div>
                         <input type="text" id="username" placeholder="Enter your username" maxlength="20"
                                 autocomplete="off">
@@ -82,6 +82,10 @@
                                         <i class="fab fa-whatsapp"></i>
                                         <h3>Welcome to WhatsApp Clone!</h3>
                                         <p>Start your conversation now</p>
+                                        <p style="margin-top: 10px; font-size: 12px;">
+                                                <i class="fas fa-microphone"></i> Press & hold mic to record voice
+                                                message
+                                        </p>
                                         <div
                                                 style="margin-top: 20px; padding: 10px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 12px;">
                                                 <i class="fas fa-code" style="color: #667eea;"></i>
@@ -95,11 +99,18 @@
 
                         <div class="message-input-container">
                                 <div class="message-input-wrapper">
+                                        <button id="mic-btn" class="mic-btn">
+                                                <i class="fas fa-microphone"></i>
+                                        </button>
                                         <textarea id="message-input" placeholder="Type a message..." maxlength="500"
                                                 rows="1"></textarea>
                                         <button onclick="sendMessage()" id="send-btn">
                                                 <i class="fas fa-paper-plane"></i>
                                         </button>
+                                </div>
+                                <div id="recording-status" class="recording-status" style="display: none;">
+                                        <i class="fas fa-circle" style="color: #ff4444; font-size: 10px;"></i>
+                                        Recording... Release to send
                                 </div>
                         </div>
                 </div>
