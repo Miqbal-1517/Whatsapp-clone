@@ -1,4 +1,3 @@
-// DOM Elements
 const socket = io();
 let currentUser = '';
 let currentMessageId = null;
@@ -6,19 +5,15 @@ let mediaRecorder = null;
 let audioChunks = [];
 let isRecording = false;
 
-// Get elements
 const messageInput = document.getElementById('messageInput');
 const messagesContainer = document.getElementById('messagesContainer');
+const messagesArea = document.getElementById('messagesArea');
 const micBtn = document.getElementById('micBtn');
 const recordingStatus = document.getElementById('recordingStatus');
 
-// ========== JOIN CHAT ==========
 function joinChat() {
         const username = document.getElementById('usernameInput').value.trim();
-        if (!username) {
-                alert('Please enter username');
-                return;
-        }
+        if (!username) return alert('Enter username');
         currentUser = username;
         socket.emit('user-join', username);
         document.getElementById('loginScreen').style.display = 'none';
@@ -27,12 +22,11 @@ function joinChat() {
         messageInput.focus();
 }
 
-// ========== SOCKET EVENTS ==========
 socket.on('users-list', (users) => {
         const container = document.getElementById('usersList');
         const others = users.filter(u => u !== currentUser);
         if (others.length === 0) {
-                container.innerHTML = '<div class="no-users">No other users online</div>';
+                container.innerHTML = '<div class="no-users">No others online</div>';
         } else {
                 container.innerHTML = others.map(u => `
             <div class="user-item" onclick="sendPrivate('${escapeHtml(u)}')">
@@ -57,11 +51,11 @@ socket.on('user-left', (data) => {
 });
 
 socket.on('receive-message', (msg) => {
-        addMessage(msg.type, msg.username, msg.content, msg.time, msg.messageId);
+        addMessage(msg.username, msg.content, msg.time, msg.id);
 });
 
 socket.on('receive-voice', (data) => {
-        addVoiceMessage(data.username, data.audio, data.time, data.messageId);
+        addVoiceMessage(data.username, data.audio, data.time, data.id);
 });
 
 socket.on('receive-file', (file) => {
@@ -76,7 +70,7 @@ socket.on('message-deleted', ({ messageId }) => {
 socket.on('user-typing', ({ username, isTyping }) => {
         const indicator = document.getElementById('typingIndicator');
         if (isTyping && username !== currentUser) {
-                indicator.textContent = `${username} is typing...`;
+                indicator.textContent = `${username} typing...`;
         } else {
                 indicator.textContent = '';
         }
@@ -87,10 +81,9 @@ socket.on('private-message', ({ from, content, time }) => {
 });
 
 socket.on('private-message-sent', ({ to }) => {
-        addSystemMessage(`Private message sent to ${to}`);
+        addSystemMessage(`Private to ${to}`);
 });
 
-// ========== SEND TEXT ==========
 function sendMessage() {
         const msg = messageInput.value.trim();
         if (!msg) return;
@@ -100,8 +93,7 @@ function sendMessage() {
         messageInput.focus();
 }
 
-// ========== ADD MESSAGE ==========
-function addMessage(type, username, content, time, msgId) {
+function addMessage(username, content, time, msgId) {
         const isSent = username === currentUser;
         const div = document.createElement('div');
         div.className = `message ${isSent ? 'sent' : 'received'}`;
@@ -117,18 +109,7 @@ function addMessage(type, username, content, time, msgId) {
         </div>
     `;
 
-        // Add delete on long press
-        div.addEventListener('touchstart', () => {
-                let timer = setTimeout(() => showDeleteModal(msgId, isSent), 500);
-                div.addEventListener('touchend', () => clearTimeout(timer));
-                div.addEventListener('touchmove', () => clearTimeout(timer));
-        });
-
-        div.addEventListener('contextmenu', (e) => {
-                e.preventDefault();
-                showDeleteModal(msgId, isSent);
-        });
-
+        addDeleteEvent(div, msgId, isSent);
         messagesContainer.appendChild(div);
         scrollToBottom();
         removeWelcome();
@@ -143,19 +124,14 @@ function addVoiceMessage(username, audio, time, msgId) {
         div.innerHTML = `
         <div class="bubble ${isSent ? 'sent-bubble' : 'received-bubble'}">
             <div class="msg-header">
-                <span class="msg-name">${escapeHtml(username)} <i class="fas fa-microphone"></i></span>
+                <span class="msg-name">${escapeHtml(username)} 🎤</span>
                 <span class="msg-time">${time}</span>
             </div>
             <audio controls src="${audio}"></audio>
         </div>
     `;
 
-        div.addEventListener('touchstart', () => {
-                let timer = setTimeout(() => showDeleteModal(msgId, isSent), 500);
-                div.addEventListener('touchend', () => clearTimeout(timer));
-                div.addEventListener('touchmove', () => clearTimeout(timer));
-        });
-
+        addDeleteEvent(div, msgId, isSent);
         messagesContainer.appendChild(div);
         scrollToBottom();
         removeWelcome();
@@ -165,13 +141,13 @@ function addFileMessage(file) {
         const isSent = file.username === currentUser;
         const div = document.createElement('div');
         div.className = `message ${isSent ? 'sent' : 'received'}`;
-        div.setAttribute('data-id', file.messageId);
+        div.setAttribute('data-id', file.id);
 
         let content = '';
         if (file.fileType?.startsWith('image/')) {
-                content = `<img src="${file.fileData}" class="file-img" onclick="window.open(this.src)">`;
+                content = `<img src="${file.fileData}" class="file-preview" onclick="window.open(this.src)">`;
         } else if (file.fileType?.startsWith('video/')) {
-                content = `<video controls src="${file.fileData}" class="file-video"></video>`;
+                content = `<video controls src="${file.fileData}" class="file-preview"></video>`;
         } else {
                 content = `
             <div class="file-attach">
@@ -185,16 +161,25 @@ function addFileMessage(file) {
         div.innerHTML = `
         <div class="bubble ${isSent ? 'sent-bubble' : 'received-bubble'}">
             <div class="msg-header">
-                <span class="msg-name">${escapeHtml(file.username)} <i class="fas fa-paperclip"></i></span>
+                <span class="msg-name">${escapeHtml(file.username)} 📎</span>
                 <span class="msg-time">${file.time}</span>
             </div>
             ${content}
         </div>
     `;
 
+        addDeleteEvent(div, file.id, isSent);
         messagesContainer.appendChild(div);
         scrollToBottom();
         removeWelcome();
+}
+
+function addDeleteEvent(div, msgId, isSent) {
+        let timer;
+        div.addEventListener('touchstart', () => { timer = setTimeout(() => showDeleteModal(msgId, isSent), 500); });
+        div.addEventListener('touchend', () => clearTimeout(timer));
+        div.addEventListener('touchmove', () => clearTimeout(timer));
+        div.addEventListener('contextmenu', (e) => { e.preventDefault(); showDeleteModal(msgId, isSent); });
 }
 
 function addSystemMessage(text) {
@@ -212,7 +197,7 @@ function addPrivateMessage(from, content, time) {
         div.innerHTML = `
         <div class="bubble private-bubble">
             <div class="msg-header">
-                <span class="msg-name">🔒 ${escapeHtml(from)} (Private)</span>
+                <span class="msg-name">🔒 ${escapeHtml(from)}</span>
                 <span class="msg-time">${time}</span>
             </div>
             <div class="msg-text">${escapeHtml(content)}</div>
@@ -222,26 +207,21 @@ function addPrivateMessage(from, content, time) {
         scrollToBottom();
 }
 
-// ========== DELETE ==========
 function showDeleteModal(msgId, isSent) {
         currentMessageId = msgId;
         const modal = document.getElementById('deleteModal');
-        const options = modal.querySelectorAll('.delete-option');
-        options[0].style.display = isSent ? 'flex' : 'none';
+        const firstOption = modal.querySelector('.delete-option:first-child');
+        firstOption.style.display = isSent ? 'flex' : 'none';
         modal.classList.add('show');
 }
 
 function deleteForEveryone() {
-        if (currentMessageId) {
-                socket.emit('delete-message', { messageId: currentMessageId, deleteFor: 'everyone' });
-        }
+        if (currentMessageId) socket.emit('delete-message', { messageId: currentMessageId });
         closeDeleteModal();
 }
 
 function deleteForMe() {
-        if (currentMessageId) {
-                socket.emit('delete-message', { messageId: currentMessageId, deleteFor: 'me' });
-        }
+        if (currentMessageId) socket.emit('delete-message', { messageId: currentMessageId });
         closeDeleteModal();
 }
 
@@ -250,12 +230,12 @@ function closeDeleteModal() {
         currentMessageId = null;
 }
 
-// ========== VOICE RECORDING ==========
+// VOICE RECORDING
+micBtn.addEventListener('touchstart', startRecord);
 micBtn.addEventListener('mousedown', startRecord);
+micBtn.addEventListener('touchend', stopRecord);
 micBtn.addEventListener('mouseup', stopRecord);
 micBtn.addEventListener('mouseleave', stopRecord);
-micBtn.addEventListener('touchstart', startRecord);
-micBtn.addEventListener('touchend', stopRecord);
 
 function startRecord(e) {
         e.preventDefault();
@@ -267,9 +247,7 @@ function startRecord(e) {
                         mediaRecorder.onstop = () => {
                                 const blob = new Blob(audioChunks, { type: 'audio/webm' });
                                 const reader = new FileReader();
-                                reader.onloadend = () => {
-                                        socket.emit('voice-message', { audio: reader.result });
-                                };
+                                reader.onloadend = () => socket.emit('voice-message', { audio: reader.result });
                                 reader.readAsDataURL(blob);
                                 stream.getTracks().forEach(t => t.stop());
                                 recordingStatus.style.display = 'none';
@@ -278,24 +256,20 @@ function startRecord(e) {
                         mediaRecorder.start();
                         micBtn.classList.add('recording');
                         recordingStatus.style.display = 'block';
-                })
-                .catch(() => alert('Microphone access required'));
+                }).catch(() => alert('Microphone access needed'));
 }
 
 function stopRecord() {
-        if (mediaRecorder && mediaRecorder.state === 'recording') {
-                mediaRecorder.stop();
-        }
+        if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
 }
 
-// ========== FILE ATTACH ==========
+// FILE ATTACH
 document.getElementById('attachBtn').addEventListener('click', () => {
         document.getElementById('fileInput').click();
 });
-
 document.getElementById('fileInput').addEventListener('change', (e) => {
         Array.from(e.target.files).forEach(file => {
-                if (file.size > 25e6) return alert(`${file.name} too large (max 25MB)`);
+                if (file.size > 25e6) return alert(`${file.name} too large`);
                 const reader = new FileReader();
                 reader.onloadend = () => {
                         socket.emit('file-attachment', {
@@ -317,52 +291,48 @@ function downloadFile(url, name) {
         a.click();
 }
 
-// ========== EMOJI PICKER ==========
-let emojiPickerOpen = false;
+// EMOJI PICKER
+let emojiOpen = false;
 document.getElementById('emojiBtn').addEventListener('click', () => {
-        if (emojiPickerOpen) return;
-
+        if (emojiOpen) return;
         const existing = document.querySelector('.emoji-picker');
         if (existing) existing.remove();
 
         const picker = document.createElement('div');
         picker.className = 'emoji-picker';
-        const emojis = '😀😃😄😁😆😅😂🤣😊😇🙂🙃😉😍🥰😘😗😙😚😋😛😜🤪😝🤑🤗🤩🥳😎🤓🧐😒😞😔😟😕🙁☹️😣😖😫😩🥺😢😭😤😠😡🤬🤯😳🥵🥶😱😨😰😥😓🤗🤔🤭🤫🤥😶😐😑😬🙄❤️🧡💛💚💙💜🖤🤍🤎👍👎👌✌️🤞🤟🤘👊💪🖕👆👇👈👉';
+        const emojis = ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😜', '🤪', '😝', '🤑', '🤗', '🤩', '🥳', '😎', '🤓', '🧐', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😬', '🙄', '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '👍', '👎', '👌', '✌️', '🤞', '🤟', '🤘', '👊', '💪', '🖕', '👆', '👇', '👈', '👉', '🖐️', '🤙'];
 
-        picker.innerHTML = `<div class="emoji-grid">${emojis.split('').map(e => `<span class="emoji">${e}</span>`).join('')}</div>`;
+        picker.innerHTML = `<div class="emoji-grid">${emojis.map(e => `<span class="emoji">${e}</span>`).join('')}</div>`;
         document.body.appendChild(picker);
-        emojiPickerOpen = true;
+        emojiOpen = true;
 
         picker.querySelectorAll('.emoji').forEach(emoji => {
                 emoji.addEventListener('click', () => {
                         messageInput.value += emoji.textContent;
                         messageInput.focus();
                         picker.remove();
-                        emojiPickerOpen = false;
+                        emojiOpen = false;
                 });
         });
 
         setTimeout(() => {
-                document.addEventListener('click', function closePicker(e) {
+                document.addEventListener('click', function close(e) {
                         if (!picker.contains(e.target) && e.target !== document.getElementById('emojiBtn')) {
                                 picker.remove();
-                                emojiPickerOpen = false;
-                                document.removeEventListener('click', closePicker);
+                                emojiOpen = false;
+                                document.removeEventListener('click', close);
                         }
                 });
         }, 100);
 });
 
-// ========== TYPING ==========
-let typingTimer;
-messageInput.addEventListener('input', () => {
+// INPUT HANDLERS
+messageInput.addEventListener('input', function () {
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 80) + 'px';
         socket.emit('typing', true);
-        clearTimeout(typingTimer);
-        typingTimer = setTimeout(() => socket.emit('typing', false), 1000);
-
-        // Auto resize
-        messageInput.style.height = 'auto';
-        messageInput.style.height = Math.min(messageInput.scrollHeight, 100) + 'px';
+        clearTimeout(window.typingTimer);
+        window.typingTimer = setTimeout(() => socket.emit('typing', false), 1000);
 });
 
 messageInput.addEventListener('keypress', (e) => {
@@ -372,28 +342,9 @@ messageInput.addEventListener('keypress', (e) => {
         }
 });
 
-// ========== PRIVATE MESSAGE ==========
-function sendPrivate(to) {
-        const msg = prompt(`Send private message to ${to}:`);
-        if (msg && msg.trim()) {
-                socket.emit('private-message', { to, message: msg.trim() });
-        }
-}
+document.getElementById('sendBtn').addEventListener('click', sendMessage);
 
-// ========== SIDEBAR ==========
-function toggleSidebar() {
-        document.getElementById('sidebar').classList.toggle('open');
-        document.getElementById('overlay').classList.toggle('show');
-}
-
-function closeSidebar() {
-        document.getElementById('sidebar').classList.remove('open');
-        document.getElementById('overlay').classList.remove('show');
-}
-
-document.getElementById('menuToggle').addEventListener('click', toggleSidebar);
-
-// Search users
+// SEARCH
 document.getElementById('searchUsers').addEventListener('input', (e) => {
         const search = e.target.value.toLowerCase();
         document.querySelectorAll('.user-item').forEach(user => {
@@ -402,19 +353,31 @@ document.getElementById('searchUsers').addEventListener('input', (e) => {
         });
 });
 
-// ========== UTILITIES ==========
+// SIDEBAR
+function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('open');
+        document.getElementById('overlay').classList.toggle('show');
+}
+function closeSidebar() {
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('overlay').classList.remove('show');
+}
+document.getElementById('menuToggle').addEventListener('click', toggleSidebar);
+
+function sendPrivate(to) {
+        const msg = prompt(`Private message to ${to}:`);
+        if (msg?.trim()) socket.emit('private-message', { to, message: msg.trim() });
+}
+
 function scrollToBottom() {
-        const container = document.getElementById('messagesContainer');
         setTimeout(() => {
-                container.scrollTop = container.scrollHeight;
+                messagesArea.scrollTop = messagesArea.scrollHeight;
         }, 50);
 }
 
 function removeWelcome() {
         const welcome = document.querySelector('.welcome-screen');
-        if (welcome && messagesContainer.children.length > 1) {
-                welcome.remove();
-        }
+        if (welcome && messagesContainer.children.length > 1) welcome.remove();
 }
 
 function escapeHtml(str) {
@@ -423,7 +386,5 @@ function escapeHtml(str) {
         return div.innerHTML;
 }
 
-// Send message on send button click
-document.getElementById('sendBtn').addEventListener('click', sendMessage);
-
-console.log('App loaded successfully');
+setTimeout(() => messageInput.focus(), 100);
+console.log('App loaded');

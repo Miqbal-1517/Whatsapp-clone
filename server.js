@@ -7,9 +7,7 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
         cors: { origin: "*", methods: ["GET", "POST"] },
-        maxHttpBufferSize: 50e6,
-        pingTimeout: 60000,
-        pingInterval: 25000
+        maxHttpBufferSize: 50e6
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -21,7 +19,6 @@ io.on('connection', (socket) => {
 
         socket.on('user-join', (username) => {
                 if (!username || username.trim() === '') return;
-
                 const cleanUsername = username.trim();
                 users.set(socket.id, cleanUsername);
                 socket.username = cleanUsername;
@@ -31,15 +28,13 @@ io.on('connection', (socket) => {
                 io.emit('user-count', users.size);
         });
 
-        socket.on('send-message', (messageData) => {
+        socket.on('send-message', (data) => {
                 const sender = users.get(socket.id);
                 if (!sender) return;
-
                 io.emit('receive-message', {
-                        messageId: Date.now() + Math.random(),
-                        type: 'text',
+                        id: Date.now() + Math.random(),
                         username: sender,
-                        content: messageData.content.trim(),
+                        content: data.content.trim(),
                         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                 });
         });
@@ -47,10 +42,8 @@ io.on('connection', (socket) => {
         socket.on('voice-message', (data) => {
                 const sender = users.get(socket.id);
                 if (!sender) return;
-
                 io.emit('receive-voice', {
-                        messageId: Date.now() + Math.random(),
-                        type: 'voice',
+                        id: Date.now() + Math.random(),
                         username: sender,
                         audio: data.audio,
                         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -60,10 +53,8 @@ io.on('connection', (socket) => {
         socket.on('file-attachment', (fileData) => {
                 const sender = users.get(socket.id);
                 if (!sender) return;
-
                 io.emit('receive-file', {
-                        messageId: Date.now() + Math.random(),
-                        type: 'file',
+                        id: Date.now() + Math.random(),
                         username: sender,
                         filename: fileData.filename,
                         fileType: fileData.type,
@@ -73,12 +64,8 @@ io.on('connection', (socket) => {
                 });
         });
 
-        socket.on('delete-message', ({ messageId, deleteFor }) => {
-                if (deleteFor === 'everyone') {
-                        io.emit('message-deleted', { messageId });
-                } else {
-                        socket.emit('message-deleted', { messageId });
-                }
+        socket.on('delete-message', ({ messageId }) => {
+                io.emit('message-deleted', { messageId });
         });
 
         socket.on('typing', (isTyping) => {
@@ -91,7 +78,6 @@ io.on('connection', (socket) => {
         socket.on('private-message', (data) => {
                 const sender = users.get(socket.id);
                 const target = Array.from(users.entries()).find(([_, name]) => name === data.to);
-
                 if (target && target[0] !== socket.id) {
                         io.to(target[0]).emit('private-message', {
                                 from: sender,

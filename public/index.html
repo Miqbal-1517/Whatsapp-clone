@@ -11,30 +11,21 @@
 </head>
 
 <body>
-        <!-- LOGIN SCREEN -->
         <div id="loginScreen" class="login-screen">
                 <div class="login-card">
                         <i class="fab fa-whatsapp" style="font-size: 60px; color: #25D366;"></i>
                         <h2>WhatsApp Clone</h2>
-                        <input type="text" id="usernameInput" placeholder="Enter your username" maxlength="20">
+                        <input type="text" id="usernameInput" placeholder="Enter username" maxlength="20">
                         <button onclick="joinChat()">Start Chat</button>
                         <div class="credit">Muhammad Iqbal | Director IT, MIT</div>
                 </div>
         </div>
 
-        <!-- MAIN APP -->
         <div id="mainApp" class="main-app" style="display: none;">
-                <!-- SIDEBAR -->
                 <div id="sidebar" class="sidebar">
                         <div class="sidebar-header">
-                                <div class="user-info">
-                                        <i class="fas fa-user-circle"></i>
-                                        <span id="currentUserName"></span>
-                                </div>
-                                <div class="online-badge">
-                                        <i class="fas fa-circle"></i>
-                                        <span id="onlineCount">0</span>
-                                </div>
+                                <div><i class="fas fa-user-circle"></i> <span id="currentUserName"></span></div>
+                                <div><i class="fas fa-circle online-dot"></i> <span id="onlineCount">0</span></div>
                         </div>
                         <div class="search-box">
                                 <i class="fas fa-search"></i>
@@ -44,7 +35,6 @@
                         <div class="sidebar-footer">Muhammad Iqbal | Director IT, MIT</div>
                 </div>
 
-                <!-- CHAT AREA -->
                 <div class="chat-area">
                         <div class="chat-header">
                                 <button id="menuToggle" class="menu-toggle">☰</button>
@@ -57,32 +47,30 @@
                                 </div>
                         </div>
 
-                        <div id="messagesContainer" class="messages-container">
-                                <div class="welcome-screen">
-                                        <i class="fab fa-whatsapp"></i>
-                                        <h3>WhatsApp Clone</h3>
-                                        <p>Send messages, voice, files & emojis</p>
-                                        <div class="welcome-credit">Muhammad Iqbal | Director IT, MIT</div>
+                        <div class="messages-area" id="messagesArea">
+                                <div id="messagesContainer">
+                                        <div class="welcome-screen">
+                                                <i class="fab fa-whatsapp"></i>
+                                                <h3>WhatsApp Clone</h3>
+                                                <p>Send messages, voice, files & emojis</p>
+                                                <div class="welcome-credit">Muhammad Iqbal | Director IT, MIT</div>
+                                        </div>
                                 </div>
                         </div>
 
-                        <div class="input-container">
+                        <div class="fixed-input">
                                 <div class="input-row">
                                         <button id="attachBtn" class="icon-btn"><i
                                                         class="fas fa-paperclip"></i></button>
                                         <input type="file" id="fileInput" multiple style="display: none;">
-
                                         <button id="emojiBtn" class="icon-btn"><i
                                                         class="far fa-smile-wink"></i></button>
-
-                                        <div class="text-input-wrapper">
+                                        <div class="input-wrapper">
                                                 <textarea id="messageInput" placeholder="Type a message"
                                                         rows="1"></textarea>
                                         </div>
-
                                         <button id="micBtn" class="icon-btn mic-btn"><i
                                                         class="fas fa-microphone"></i></button>
-
                                         <button id="sendBtn" class="send-btn"><i
                                                         class="fas fa-paper-plane"></i></button>
                                 </div>
@@ -93,7 +81,6 @@
 
         <div id="overlay" class="overlay" onclick="closeSidebar()"></div>
 
-        <!-- DELETE MODAL -->
         <div id="deleteModal" class="delete-modal">
                 <div class="delete-modal-content">
                         <div class="delete-option" onclick="deleteForEveryone()"><i class="fas fa-trash-alt"></i> Delete
