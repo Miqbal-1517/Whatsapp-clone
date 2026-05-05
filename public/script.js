@@ -288,24 +288,35 @@ function stopRecord() {
         if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
 }
 
-// File Attach
+// FILE ATTACH - FIXED
 document.getElementById('attachBtn').addEventListener('click', () => {
         document.getElementById('fileInput').click();
 });
+
 document.getElementById('fileInput').addEventListener('change', (e) => {
-        Array.from(e.target.files).forEach(file => {
-                if (file.size > 25e6) return alert(`${file.name} too large`);
+        const files = Array.from(e.target.files);
+        if (files.length === 0) return;
+
+        files.forEach(file => {
+                if (file.size > 25 * 1024 * 1024) {
+                        alert(`${file.name} is too large (max 25MB)`);
+                        return;
+                }
+
                 const reader = new FileReader();
-                reader.onloadend = () => {
-                        socket.emit('file-attachment', {
+                reader.onload = function (event) {
+                        const fileData = {
                                 filename: file.name,
                                 type: file.type,
                                 size: file.size,
-                                data: reader.result
-                        });
+                                data: event.target.result
+                        };
+                        socket.emit('file-attachment', fileData);
+                        console.log('File sent:', file.name);
                 };
                 reader.readAsDataURL(file);
         });
+
         e.target.value = '';
 });
 
@@ -398,9 +409,6 @@ function closeSidebar() {
 menuToggle.addEventListener('click', openSidebar);
 closeSidebarBtn.addEventListener('click', closeSidebar);
 
-// Close sidebar when clicking outside on overlay? No overlay now - only close button closes it
-// But we want it to close when clicking outside? Let's not - only close button
-
 function scrollToBottom() {
         setTimeout(() => {
                 messagesArea.scrollTop = messagesArea.scrollHeight;
@@ -419,4 +427,4 @@ function escapeHtml(str) {
 }
 
 setTimeout(() => messageInput.focus(), 100);
-console.log('App loaded - Mobile optimized');
+console.log('App loaded - Header & textbox permanently fixed, file attach working');
