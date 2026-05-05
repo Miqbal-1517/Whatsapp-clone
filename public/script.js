@@ -428,3 +428,21 @@ function escapeHtml(str) {
 
 setTimeout(() => messageInput.focus(), 100);
 console.log('App loaded - Header & textbox permanently fixed, file attach working');
+// FORCE SHOW TEXTBOX ON MOBILE
+setTimeout(() => {
+        const inputDiv = document.querySelector('.fixed-input');
+        const textarea = document.getElementById('messageInput');
+
+        if (inputDiv) {
+                inputDiv.style.display = 'block';
+                inputDiv.style.visibility = 'visible';
+                console.log('✅ Input forced visible');
+        }
+
+        if (textarea) {
+                textarea.style.display = 'block';
+                textarea.style.visibility = 'visible';
+                textarea.style.opacity = '1';
+                textarea.focus();
+        }
+}, 500);
