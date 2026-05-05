@@ -7,11 +7,12 @@
 
 body {
         font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        background: #111b21;
+        background: #ece5dd;
         height: 100vh;
         overflow: hidden;
 }
 
+/* ========== LOGIN SCREEN ========== */
 .login-screen {
         display: flex;
         justify-content: center;
@@ -27,24 +28,19 @@ body {
         border-radius: 24px;
         text-align: center;
         width: 100%;
-        max-width: 380px;
+        max-width: 350px;
 }
 
-.login-logo i {
-        font-size: 60px;
-        color: #25D366;
-}
-
-.login-logo h2 {
+.login-card h2 {
         color: #075E54;
-        margin: 10px 0;
+        margin: 15px 0;
 }
 
 .login-card input {
         width: 100%;
-        padding: 14px 18px;
+        padding: 14px;
         margin: 15px 0;
-        border: 1px solid #e0e0e0;
+        border: 1px solid #ddd;
         border-radius: 30px;
         font-size: 16px;
 }
@@ -66,90 +62,88 @@ body {
         cursor: pointer;
 }
 
-.login-credit {
+.credit {
         margin-top: 20px;
         font-size: 11px;
         color: #999;
 }
 
-.app {
+/* ========== MAIN APP ========== */
+.main-app {
         display: flex;
         height: 100vh;
-        background: #111b21;
+        background: #fff;
 }
 
+/* ========== SIDEBAR ========== */
 .sidebar {
-        width: 320px;
-        background: #202c33;
+        width: 300px;
+        background: #fff;
+        border-right: 1px solid #e0e0e0;
         display: flex;
         flex-direction: column;
-        border-right: 1px solid #2a3942;
-        position: relative;
         z-index: 10;
 }
 
 .sidebar-header {
-        background: #202c33;
-        padding: 18px 16px;
+        background: #075E54;
+        padding: 20px 16px;
         display: flex;
         justify-content: space-between;
         align-items: center;
+        color: white;
 }
 
-.sidebar-user {
+.user-info {
         display: flex;
         align-items: center;
         gap: 12px;
-        color: #e9edef;
 }
 
-.sidebar-user i {
-        font-size: 40px;
+.user-info i {
+        font-size: 36px;
 }
 
-.sidebar-user span {
+.user-info span {
         font-weight: bold;
         font-size: 16px;
 }
 
-.sidebar-status {
-        color: #e9edef;
+.online-badge {
         font-size: 13px;
 }
 
-.online-dot {
+.online-badge i {
         color: #25D366;
         font-size: 10px;
         margin-right: 4px;
 }
 
-.sidebar-search {
+.search-box {
         padding: 8px 12px;
-        background: #202c33;
+        background: #f6f6f6;
 }
 
-.sidebar-search input {
+.search-box input {
         width: 100%;
         padding: 10px 16px 10px 40px;
-        background: #2a3942;
+        background: white;
         border: none;
         border-radius: 30px;
-        color: #e9edef;
         font-size: 14px;
 }
 
-.sidebar-search i {
-        position: absolute;
-        left: 28px;
-        margin-top: 12px;
-        color: #8696a0;
+.search-box i {
+        position: relative;
+        left: 30px;
+        top: -28px;
+        color: #919191;
 }
 
-.sidebar-users {
+.users-list {
         flex: 1;
         overflow-y: auto;
-        background: #202c33;
-        -webkit-overflow-scrolling: touch;
+        background: #fff;
 }
 
 .user-item {
@@ -158,52 +152,54 @@ body {
         gap: 14px;
         padding: 12px 16px;
         cursor: pointer;
+        border-bottom: 1px solid #f0f0f0;
 }
 
 .user-item:active {
-        background: #2a3942;
+        background: #f0f0f0;
 }
 
-.user-item i {
-        font-size: 32px;
-        color: #8696a0;
+.user-item i:first-child {
+        font-size: 40px;
+        color: #919191;
 }
 
-.user-name {
+.user-item span {
         flex: 1;
-        color: #e9edef;
         font-size: 15px;
+        color: #111;
 }
 
-.private-icon {
+.user-item i:last-child {
         font-size: 12px;
-        color: #8696a0;
+        color: #919191;
 }
 
 .no-users {
         padding: 20px;
         text-align: center;
-        color: #8696a0;
-        font-size: 14px;
+        color: #919191;
 }
 
 .sidebar-footer {
         padding: 12px 16px;
-        border-top: 1px solid #2a3942;
+        border-top: 1px solid #e0e0e0;
         font-size: 11px;
-        color: #8696a0;
+        color: #919191;
         text-align: center;
+        background: #f6f6f6;
 }
 
-.chat-main {
+/* ========== CHAT AREA ========== */
+.chat-area {
         flex: 1;
         display: flex;
         flex-direction: column;
-        background: #0b141a;
+        background: #e5ddd5;
 }
 
 .chat-header {
-        background: #202c33;
+        background: #075E54;
         padding: 10px 16px;
         display: flex;
         align-items: center;
@@ -211,89 +207,73 @@ body {
         flex-shrink: 0;
 }
 
-.menu-btn {
+.menu-toggle {
         display: none;
         background: none;
         border: none;
         font-size: 24px;
-        color: #e9edef;
+        color: white;
         cursor: pointer;
 }
 
-.chat-header-info {
+.chat-title {
         display: flex;
         align-items: center;
-        gap: 14px;
-        flex: 1;
+        gap: 12px;
+        color: white;
 }
 
-.chat-header-info i {
+.chat-title i {
         font-size: 28px;
-        color: #e9edef;
 }
 
-.chat-header-info h3 {
-        color: #e9edef;
+.chat-title h3 {
         font-size: 16px;
 }
 
 .typing-indicator {
-        font-size: 12px;
-        color: #25D366;
-        display: block;
+        font-size: 11px;
+        opacity: 0.8;
 }
 
-.messages-area {
+/* ========== MESSAGES CONTAINER ========== */
+.messages-container {
         flex: 1;
         overflow-y: auto;
-        padding: 16px 20px;
-        -webkit-overflow-scrolling: touch;
-}
-
-.messages-area::-webkit-scrollbar {
-        width: 4px;
-}
-
-.messages-area::-webkit-scrollbar-track {
-        background: #0b141a;
-}
-
-.messages-area::-webkit-scrollbar-thumb {
-        background: #374248;
-        border-radius: 4px;
-}
-
-#messages-container {
+        padding: 16px;
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 6px;
+        background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgdmlld0JveD0iMCAwIDQwIDQwIiBvcGFjaXR5PSIwLjA0Ij48cGF0aCBmaWxsPSIjMDAwIiBkPSJNMzIgMTJIMTh2MmgxNHY5YTQgNCAwIDAxLTQgNEgxMlYxOEg4djE0YzAgMS4xLjkgMiAyIDJoMjhhMiAyIDAgMDAyLTJWMTJjMC0xLjEtLjktMi0yLTJ6bS0xOC0yaDE0YzEuMSAwIDIgLjkgMiAyVjNoLTE0djctM3oiLz48L3N2Zz4=');
+        background-repeat: repeat;
 }
 
-.welcome-chat {
+.welcome-screen {
         text-align: center;
-        color: #8696a0;
+        color: #919191;
         padding: 60px 20px;
 }
 
-.welcome-chat i {
+.welcome-screen i {
         font-size: 80px;
         color: #25D366;
         margin-bottom: 20px;
 }
 
-.welcome-chat h3 {
-        color: #e9edef;
+.welcome-screen h3 {
+        color: #075E54;
         margin-bottom: 8px;
 }
 
 .welcome-credit {
         margin-top: 30px;
         padding: 12px;
-        background: #202c33;
+        background: rgba(255, 255, 255, 0.8);
         border-radius: 12px;
         display: inline-block;
 }
 
+/* Messages */
 .message {
         display: flex;
         margin-bottom: 4px;
@@ -307,41 +287,33 @@ body {
         justify-content: flex-start;
 }
 
-.message-bubble {
+.bubble {
         max-width: 70%;
         padding: 8px 12px;
         border-radius: 16px;
+        position: relative;
         word-wrap: break-word;
+        box-shadow: 0 1px 0.5px rgba(0, 0, 0, 0.13);
 }
 
 .sent-bubble {
-        background: #005c4b;
-        color: #e9edef;
+        background: #dcf8c5;
+        color: #111;
         border-top-right-radius: 4px;
 }
 
 .received-bubble {
-        background: #202c33;
-        color: #e9edef;
+        background: white;
+        color: #111;
         border-top-left-radius: 4px;
 }
 
 .private-bubble {
-        background: #2a3942;
+        background: #fff3e0;
         border-left: 3px solid #ff9800;
 }
 
-.message-bubble.deleted {
-        opacity: 0.7;
-}
-
-.deleted-text {
-        font-style: italic;
-        color: #8696a0;
-        font-size: 12px;
-}
-
-.message-header {
+.msg-header {
         display: flex;
         justify-content: space-between;
         gap: 12px;
@@ -349,28 +321,30 @@ body {
         font-size: 11px;
 }
 
-.msg-username {
+.msg-name {
         font-weight: bold;
-        color: #25D366;
+        color: #075E54;
 }
 
 .msg-time {
-        color: #8696a0;
+        color: #919191;
         font-size: 10px;
 }
 
-.msg-content {
+.msg-text {
         font-size: 14px;
         line-height: 1.4;
 }
 
+/* Voice & File */
 audio {
         max-width: 200px;
         height: 36px;
         border-radius: 20px;
 }
 
-.file-preview {
+.file-img,
+.file-video {
         max-width: 200px;
         max-height: 150px;
         border-radius: 12px;
@@ -381,13 +355,13 @@ audio {
         display: flex;
         align-items: center;
         gap: 10px;
-        background: #2a3942;
+        background: #f0f0f0;
         padding: 8px 12px;
         border-radius: 12px;
         flex-wrap: wrap;
 }
 
-.download-btn {
+.file-attach button {
         background: #25D366;
         border: none;
         padding: 4px 12px;
@@ -397,53 +371,53 @@ audio {
         font-size: 11px;
 }
 
-.system-message {
+/* System Message */
+.system-msg {
         text-align: center;
         margin: 8px auto;
 }
 
-.system-message span {
-        background: #2a3942;
+.system-msg span {
+        background: rgba(0, 0, 0, 0.05);
         padding: 4px 12px;
         border-radius: 20px;
         font-size: 11px;
-        color: #8696a0;
+        color: #919191;
         display: inline-block;
 }
 
-.input-area {
-        background: #202c33;
-        padding: 8px 16px;
+/* ========== INPUT AREA ========== */
+.input-container {
+        background: #f0f0f0;
+        padding: 8px 12px;
         flex-shrink: 0;
 }
 
-.input-wrapper {
+.input-row {
         display: flex;
         align-items: center;
         gap: 8px;
-        background: #2a3942;
-        border-radius: 30px;
-        padding: 4px 12px;
 }
 
-.input-icon {
+.icon-btn {
         background: none;
         border: none;
-        color: #8696a0;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        color: #919191;
         font-size: 22px;
         cursor: pointer;
-        padding: 6px;
-        border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
 }
 
-.input-icon:active {
-        background: #374248;
+.icon-btn:active {
+        background: #e0e0e0;
 }
 
-.mic-icon.recording {
+.mic-btn.recording {
         color: #ff4444;
         animation: pulse 1s infinite;
 }
@@ -460,32 +434,30 @@ audio {
         }
 }
 
-.message-input-wrapper {
+.text-input-wrapper {
         flex: 1;
+        background: white;
+        border-radius: 30px;
+        padding: 0 12px;
 }
 
-#message-input {
+#messageInput {
         width: 100%;
-        background: transparent;
         border: none;
         outline: none;
-        color: #e9edef;
         font-size: 15px;
         padding: 10px 0;
         resize: none;
         font-family: inherit;
         max-height: 100px;
-}
-
-#message-input::placeholder {
-        color: #8696a0;
+        background: transparent;
 }
 
 .send-btn {
         background: #25D366;
         border: none;
-        width: 36px;
-        height: 36px;
+        width: 40px;
+        height: 40px;
         border-radius: 50%;
         cursor: pointer;
         display: flex;
@@ -507,14 +479,15 @@ audio {
         display: none;
 }
 
+/* ========== EMOJI PICKER ========== */
 .emoji-picker {
         position: fixed;
         bottom: 80px;
         left: 70px;
-        background: #2a3942;
+        background: white;
         border-radius: 16px;
         padding: 10px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
         z-index: 1000;
         max-width: 300px;
         max-height: 220px;
@@ -533,15 +506,17 @@ audio {
         transform: scale(1.2);
 }
 
+/* ========== DELETE MODAL ========== */
 .delete-modal {
         position: fixed;
         bottom: -300px;
         left: 0;
         right: 0;
-        background: #202c33;
+        background: white;
         border-radius: 24px 24px 0 0;
-        transition: bottom 0.3s ease;
+        transition: bottom 0.3s;
         z-index: 2000;
+        box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.1);
 }
 
 .delete-modal.show {
@@ -559,12 +534,11 @@ audio {
         padding: 14px 16px;
         cursor: pointer;
         border-radius: 12px;
-        color: #e9edef;
         font-size: 15px;
 }
 
 .delete-option:active {
-        background: #2a3942;
+        background: #f0f0f0;
 }
 
 .delete-option i {
@@ -573,12 +547,11 @@ audio {
 }
 
 .delete-option.cancel {
-        margin-top: 8px;
-        border-top: 1px solid #2a3942;
         color: #25D366;
 }
 
-.sidebar-overlay {
+/* ========== OVERLAY ========== */
+.overlay {
         display: none;
         position: fixed;
         top: 0;
@@ -589,64 +562,66 @@ audio {
         z-index: 5;
 }
 
-.sidebar-overlay.show {
+.overlay.show {
         display: block;
 }
 
+/* ========== MOBILE ========== */
 @media (max-width: 768px) {
         .sidebar {
                 position: fixed;
-                left: -320px;
+                left: -300px;
                 top: 0;
                 bottom: 0;
                 width: 280px;
                 transition: left 0.3s;
                 z-index: 100;
+                background: white;
         }
 
         .sidebar.open {
                 left: 0;
         }
 
-        .menu-btn {
+        .menu-toggle {
                 display: block;
         }
 
-        .message-bubble {
+        .bubble {
                 max-width: 85%;
         }
 
-        .emoji-picker {
-                left: 10px;
-                max-width: 260px;
-        }
-
-        .input-icon {
+        .icon-btn {
+                width: 36px;
+                height: 36px;
                 font-size: 20px;
         }
 
         .send-btn {
-                width: 32px;
-                height: 32px;
+                width: 36px;
+                height: 36px;
                 font-size: 16px;
         }
-}
 
-@media (max-width: 480px) {
-        .message-bubble {
-                max-width: 90%;
-        }
-
-        .sidebar {
-                width: 260px;
-        }
-
-        audio,
-        .file-preview {
-                max-width: 150px;
+        .emoji-picker {
+                left: 10px;
+                bottom: 75px;
+                max-width: 260px;
         }
 
         .emoji-grid {
                 font-size: 20px;
+        }
+
+        .file-img,
+        .file-video,
+        audio {
+                max-width: 150px;
+        }
+}
+
+@media (max-width: 480px) {
+        .bubble {
+                max-width: 90%;
         }
 }

@@ -17,7 +17,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 const users = new Map();
 
 io.on('connection', (socket) => {
-        console.log('🟢 User connected:', socket.id);
+        console.log('User connected:', socket.id);
 
         socket.on('user-join', (username) => {
                 if (!username || username.trim() === '') return;
@@ -26,62 +26,58 @@ io.on('connection', (socket) => {
                 users.set(socket.id, cleanUsername);
                 socket.username = cleanUsername;
 
-                const userList = Array.from(users.values());
-                io.emit('users-list', userList);
-                socket.broadcast.emit('user-joined', { username: cleanUsername, timestamp: new Date().toISOString() });
+                io.emit('users-list', Array.from(users.values()));
+                socket.broadcast.emit('user-joined', { username: cleanUsername });
                 io.emit('user-count', users.size);
         });
 
         socket.on('send-message', (messageData) => {
-                const senderUsername = users.get(socket.id);
-                if (!senderUsername) return;
+                const sender = users.get(socket.id);
+                if (!sender) return;
 
                 io.emit('receive-message', {
-                        id: Date.now() + Math.random(),
+                        messageId: Date.now() + Math.random(),
                         type: 'text',
-                        username: senderUsername,
+                        username: sender,
                         content: messageData.content.trim(),
-                        timestamp: new Date().toISOString(),
-                        messageId: Date.now() + Math.random()
+                        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                 });
         });
 
         socket.on('voice-message', (data) => {
-                const senderUsername = users.get(socket.id);
-                if (!senderUsername) return;
+                const sender = users.get(socket.id);
+                if (!sender) return;
 
                 io.emit('receive-voice', {
-                        id: Date.now() + Math.random(),
+                        messageId: Date.now() + Math.random(),
                         type: 'voice',
-                        username: senderUsername,
+                        username: sender,
                         audio: data.audio,
-                        timestamp: new Date().toISOString(),
-                        messageId: Date.now() + Math.random()
+                        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                 });
         });
 
         socket.on('file-attachment', (fileData) => {
-                const senderUsername = users.get(socket.id);
-                if (!senderUsername) return;
+                const sender = users.get(socket.id);
+                if (!sender) return;
 
                 io.emit('receive-file', {
-                        id: Date.now() + Math.random(),
+                        messageId: Date.now() + Math.random(),
                         type: 'file',
-                        username: senderUsername,
+                        username: sender,
                         filename: fileData.filename,
                         fileType: fileData.type,
                         fileSize: fileData.size,
                         fileData: fileData.data,
-                        timestamp: new Date().toISOString(),
-                        messageId: Date.now() + Math.random()
+                        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                 });
         });
 
         socket.on('delete-message', ({ messageId, deleteFor }) => {
                 if (deleteFor === 'everyone') {
-                        io.emit('message-deleted', { messageId, deleteFor: 'everyone' });
+                        io.emit('message-deleted', { messageId });
                 } else {
-                        socket.emit('message-deleted', { messageId, deleteFor: 'me' });
+                        socket.emit('message-deleted', { messageId });
                 }
         });
 
@@ -94,11 +90,13 @@ io.on('connection', (socket) => {
 
         socket.on('private-message', (data) => {
                 const sender = users.get(socket.id);
-                const targetEntry = Array.from(users.entries()).find(([_, name]) => name === data.to);
+                const target = Array.from(users.entries()).find(([_, name]) => name === data.to);
 
-                if (targetEntry && targetEntry[0] !== socket.id) {
-                        io.to(targetEntry[0]).emit('private-message', {
-                                from: sender, to: data.to, content: data.message.trim(), timestamp: new Date().toISOString()
+                if (target && target[0] !== socket.id) {
+                        io.to(target[0]).emit('private-message', {
+                                from: sender,
+                                content: data.message.trim(),
+                                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                         });
                         socket.emit('private-message-sent', { to: data.to });
                 }
@@ -109,13 +107,11 @@ io.on('connection', (socket) => {
                 if (username) {
                         users.delete(socket.id);
                         io.emit('users-list', Array.from(users.values()));
-                        socket.broadcast.emit('user-left', { username, timestamp: new Date().toISOString() });
+                        socket.broadcast.emit('user-left', { username });
                         io.emit('user-count', users.size);
                 }
         });
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, '0.0.0.0', () => {
-        console.log(`🚀 WhatsApp Clone running on port ${PORT}`);
-});
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));

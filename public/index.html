@@ -3,7 +3,7 @@
 
 <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
         <meta name="theme-color" content="#075E54">
         <title>WhatsApp Clone</title>
         <link rel="stylesheet" href="styles.css">
@@ -11,92 +11,95 @@
 </head>
 
 <body>
-        <div id="login-screen" class="login-screen">
+        <!-- LOGIN SCREEN -->
+        <div id="loginScreen" class="login-screen">
                 <div class="login-card">
-                        <div class="login-logo">
-                                <i class="fab fa-whatsapp"></i>
-                                <h2>WhatsApp Clone</h2>
-                        </div>
-                        <input type="text" id="username" placeholder="Enter username" maxlength="20" autocomplete="off">
-                        <button onclick="joinChat()">Start Chat <i class="fas fa-arrow-right"></i></button>
-                        <div class="login-credit">Muhammad Iqbal | Director IT, MIT</div>
+                        <i class="fab fa-whatsapp" style="font-size: 60px; color: #25D366;"></i>
+                        <h2>WhatsApp Clone</h2>
+                        <input type="text" id="usernameInput" placeholder="Enter your username" maxlength="20">
+                        <button onclick="joinChat()">Start Chat</button>
+                        <div class="credit">Muhammad Iqbal | Director IT, MIT</div>
                 </div>
         </div>
 
-        <div id="app" class="app" style="display: none;">
+        <!-- MAIN APP -->
+        <div id="mainApp" class="main-app" style="display: none;">
+                <!-- SIDEBAR -->
                 <div id="sidebar" class="sidebar">
                         <div class="sidebar-header">
-                                <div class="sidebar-user">
+                                <div class="user-info">
                                         <i class="fas fa-user-circle"></i>
-                                        <span id="current-user-name"></span>
+                                        <span id="currentUserName"></span>
                                 </div>
-                                <div class="sidebar-status">
-                                        <i class="fas fa-circle online-dot"></i>
-                                        <span id="online-count">0</span>
+                                <div class="online-badge">
+                                        <i class="fas fa-circle"></i>
+                                        <span id="onlineCount">0</span>
                                 </div>
                         </div>
-                        <div class="sidebar-search">
+                        <div class="search-box">
                                 <i class="fas fa-search"></i>
-                                <input type="text" placeholder="Search" id="search-users">
+                                <input type="text" id="searchUsers" placeholder="Search">
                         </div>
-                        <div class="sidebar-users" id="users-list-container">
-                                <div id="users-list"></div>
-                        </div>
+                        <div id="usersList" class="users-list"></div>
                         <div class="sidebar-footer">Muhammad Iqbal | Director IT, MIT</div>
                 </div>
 
-                <div class="chat-main">
+                <!-- CHAT AREA -->
+                <div class="chat-area">
                         <div class="chat-header">
-                                <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-                                <div class="chat-header-info">
+                                <button id="menuToggle" class="menu-toggle">☰</button>
+                                <div class="chat-title">
                                         <i class="fab fa-whatsapp"></i>
                                         <div>
                                                 <h3>Group Chat</h3>
-                                                <span id="typing-indicator" class="typing-indicator"></span>
+                                                <span id="typingIndicator" class="typing-indicator"></span>
                                         </div>
                                 </div>
                         </div>
 
-                        <div class="messages-area" id="messages-area">
-                                <div id="messages-container">
-                                        <div class="welcome-chat">
-                                                <i class="fab fa-whatsapp"></i>
-                                                <h3>WhatsApp Clone</h3>
-                                                <p>Send messages, voice, files & emojis</p>
-                                                <div class="welcome-credit">Muhammad Iqbal | Director IT, MIT</div>
-                                        </div>
+                        <div id="messagesContainer" class="messages-container">
+                                <div class="welcome-screen">
+                                        <i class="fab fa-whatsapp"></i>
+                                        <h3>WhatsApp Clone</h3>
+                                        <p>Send messages, voice, files & emojis</p>
+                                        <div class="welcome-credit">Muhammad Iqbal | Director IT, MIT</div>
                                 </div>
                         </div>
 
-                        <div class="input-area">
-                                <div class="input-wrapper">
-                                        <button id="attach-btn" class="input-icon"><i
+                        <div class="input-container">
+                                <div class="input-row">
+                                        <button id="attachBtn" class="icon-btn"><i
                                                         class="fas fa-paperclip"></i></button>
-                                        <input type="file" id="file-input" multiple style="display: none;">
-                                        <button id="emoji-btn" class="input-icon"><i
+                                        <input type="file" id="fileInput" multiple style="display: none;">
+
+                                        <button id="emojiBtn" class="icon-btn"><i
                                                         class="far fa-smile-wink"></i></button>
-                                        <div class="message-input-wrapper">
-                                                <textarea id="message-input" placeholder="Type a message"
+
+                                        <div class="text-input-wrapper">
+                                                <textarea id="messageInput" placeholder="Type a message"
                                                         rows="1"></textarea>
                                         </div>
-                                        <button id="mic-btn" class="input-icon mic-icon"><i
+
+                                        <button id="micBtn" class="icon-btn mic-btn"><i
                                                         class="fas fa-microphone"></i></button>
-                                        <button onclick="sendMessage()" id="send-btn" class="send-btn"><i
+
+                                        <button id="sendBtn" class="send-btn"><i
                                                         class="fas fa-paper-plane"></i></button>
                                 </div>
-                                <div id="recording-status" class="recording-status">🔴 Recording... Release</div>
+                                <div id="recordingStatus" class="recording-status">🔴 Recording...</div>
                         </div>
                 </div>
         </div>
 
-        <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+        <div id="overlay" class="overlay" onclick="closeSidebar()"></div>
 
-        <div id="delete-modal" class="delete-modal">
+        <!-- DELETE MODAL -->
+        <div id="deleteModal" class="delete-modal">
                 <div class="delete-modal-content">
-                        <div class="delete-option" onclick="deleteMessageConfirm('everyone')"><i
-                                        class="fas fa-trash-alt"></i> Delete for everyone</div>
-                        <div class="delete-option" onclick="deleteMessageConfirm('me')"><i
-                                        class="fas fa-user-slash"></i> Delete for me</div>
+                        <div class="delete-option" onclick="deleteForEveryone()"><i class="fas fa-trash-alt"></i> Delete
+                                for everyone</div>
+                        <div class="delete-option" onclick="deleteForMe()"><i class="fas fa-user-slash"></i> Delete for
+                                me</div>
                         <div class="delete-option cancel" onclick="closeDeleteModal()">Cancel</div>
                 </div>
         </div>
