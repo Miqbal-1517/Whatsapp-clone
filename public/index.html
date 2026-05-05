@@ -4,11 +4,9 @@
 <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-        <title>WhatsApp Clone - Complete Chat App</title>
+        <title>WhatsApp Clone - Muhammad Iqbal | MIT</title>
         <link rel="stylesheet" href="styles.css">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-        <!-- Emoji Picker CSS -->
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/emoji-mart/css/emoji-mart.css">
 </head>
 
 <body>
@@ -20,8 +18,7 @@
                                 <h2>WhatsApp Clone</h2>
                                 <p class="subtitle">Complete Chat Application</p>
                         </div>
-                        <input type="text" id="username" placeholder="Enter your username" maxlength="20"
-                                autocomplete="off">
+                        <input type="text" id="username" placeholder="Enter username" maxlength="20" autocomplete="off">
                         <button onclick="joinChat()">Join Chat <i class="fas fa-arrow-right"></i></button>
                         <div class="developer-credit">
                                 <i class="fas fa-code"></i> Created by <strong>Muhammad Iqbal</strong><br>
@@ -30,7 +27,7 @@
                 </div>
         </div>
 
-        <!-- Main Chat Container -->
+        <!-- Chat Container -->
         <div id="chat-container" class="chat-container" style="display: none;">
                 <!-- Sidebar -->
                 <div id="sidebar" class="sidebar">
@@ -42,82 +39,59 @@
                                                 <span class="online-status">Online</span>
                                         </div>
                                 </div>
-                                <button class="close-sidebar" onclick="toggleSidebar()">
-                                        <i class="fas fa-times"></i>
-                                </button>
+                                <button class="close-sidebar" onclick="toggleSidebar()">✕</button>
                                 <div class="developer-badge">
-                                        <i class="fas fa-crown"></i> Developed by <strong>Muhammad Iqbal</strong><br>
+                                        <i class="fas fa-crown"></i> Muhammad Iqbal<br>
                                         <small>Director of IT Programs, MIT</small>
                                 </div>
                         </div>
                         <div class="online-count-box">
                                 <i class="fas fa-circle online-icon"></i>
-                                <span id="online-count">0</span> Online Users
+                                <span id="online-count">0</span> Online
                         </div>
                         <div class="users-list">
-                                <h3><i class="fas fa-users"></i> Active Chats</h3>
+                                <h3><i class="fas fa-users"></i> Active Users</h3>
                                 <div id="users-list"></div>
                         </div>
                 </div>
 
-                <!-- Main Chat Area -->
+                <!-- Chat Area -->
                 <div class="chat-area">
                         <div class="chat-header">
-                                <button class="menu-btn" onclick="toggleSidebar()">
-                                        <i class="fas fa-bars"></i>
-                                </button>
+                                <button class="menu-btn" onclick="toggleSidebar()">☰</button>
                                 <div class="chat-header-info">
                                         <i class="fas fa-comments"></i>
                                         <div>
-                                                <h3 style="margin: 0;">Group Chat</h3>
-                                                <small style="font-size: 10px; color: #25D366; display: block;">
-                                                        <i class="fas fa-code"></i> Muhammad Iqbal | Director of IT
-                                                        Programs, MIT
-                                                </small>
+                                                <h3>Group Chat</h3>
+                                                <small>Muhammad Iqbal | Director IT, MIT</small>
                                         </div>
                                 </div>
-                                <div class="typing-indicator" id="typing-indicator"></div>
+                                <div id="typing-indicator" class="typing-indicator"></div>
                         </div>
 
                         <div class="messages-container" id="messages-container">
                                 <div class="welcome-message">
                                         <i class="fab fa-whatsapp"></i>
-                                        <h3>Welcome to WhatsApp Clone!</h3>
-                                        <p>Start your conversation now</p>
-                                        <div class="feature-list">
-                                                <small>✨ Features: Text | Voice | Files | Emojis | Delete
-                                                        Messages</small>
-                                        </div>
-                                        <div class="app-credit">
-                                                <i class="fas fa-heart" style="color: #ff4444;"></i>
-                                                <strong>Muhammad Iqbal</strong> - Director of IT Programs, MIT
+                                        <h3>Welcome!</h3>
+                                        <p>Start chatting now</p>
+                                        <div class="features">
+                                                ✨ Text | Voice | Files | Emojis | Delete
                                         </div>
                                 </div>
                         </div>
 
                         <div class="message-input-container">
                                 <div class="message-input-wrapper">
-                                        <button id="attach-btn" class="action-btn">
-                                                <i class="fas fa-paperclip"></i>
-                                        </button>
-                                        <input type="file" id="file-input"
-                                                accept="image/*,video/*,application/pdf,.txt,.doc,.docx" multiple
-                                                style="display: none;">
-                                        <button id="emoji-btn" class="action-btn">
-                                                <i class="far fa-smile-wink"></i>
-                                        </button>
-                                        <button id="mic-btn" class="action-btn mic-btn">
-                                                <i class="fas fa-microphone"></i>
-                                        </button>
-                                        <textarea id="message-input" placeholder="Type a message..." maxlength="1000"
+                                        <button id="attach-btn" class="action-btn">📎</button>
+                                        <input type="file" id="file-input" multiple style="display: none;">
+                                        <button id="emoji-btn" class="action-btn">😊</button>
+                                        <button id="mic-btn" class="action-btn mic-btn">🎤</button>
+                                        <textarea id="message-input" placeholder="Type a message..."
                                                 rows="1"></textarea>
-                                        <button onclick="sendMessage()" id="send-btn">
-                                                <i class="fas fa-paper-plane"></i>
-                                        </button>
+                                        <button onclick="sendMessage()" id="send-btn">📤</button>
                                 </div>
                                 <div id="recording-status" class="recording-status" style="display: none;">
-                                        <i class="fas fa-circle" style="color: #ff4444;"></i> Recording... Release to
-                                        send
+                                        🔴 Recording... Release to send
                                 </div>
                         </div>
                 </div>
@@ -126,7 +100,6 @@
         <div id="overlay" class="overlay" onclick="toggleSidebar()"></div>
 
         <script src="/socket.io/socket.io.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/emoji-mart/js/emoji-mart.min.js"></script>
         <script src="script.js"></script>
 </body>
 
