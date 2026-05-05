@@ -14,6 +14,15 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const users = new Map();
 
+const getPakistanTime = () => {
+        return new Date().toLocaleTimeString('en-PK', {
+                timeZone: 'Asia/Karachi',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+        });
+};
+
 io.on('connection', (socket) => {
         console.log('User connected:', socket.id);
 
@@ -24,7 +33,7 @@ io.on('connection', (socket) => {
                 socket.username = cleanUsername;
 
                 io.emit('users-list', Array.from(users.values()));
-                socket.broadcast.emit('user-joined', { username: cleanUsername });
+                socket.broadcast.emit('user-joined', { username: cleanUsername, time: getPakistanTime() });
                 io.emit('user-count', users.size);
         });
 
@@ -35,7 +44,7 @@ io.on('connection', (socket) => {
                         id: Date.now() + Math.random(),
                         username: sender,
                         content: data.content.trim(),
-                        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                        time: getPakistanTime()
                 });
         });
 
@@ -46,7 +55,7 @@ io.on('connection', (socket) => {
                         id: Date.now() + Math.random(),
                         username: sender,
                         audio: data.audio,
-                        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                        time: getPakistanTime()
                 });
         });
 
@@ -60,7 +69,7 @@ io.on('connection', (socket) => {
                         fileType: fileData.type,
                         fileSize: fileData.size,
                         fileData: fileData.data,
-                        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                        time: getPakistanTime()
                 });
         });
 
@@ -82,7 +91,7 @@ io.on('connection', (socket) => {
                         io.to(target[0]).emit('private-message', {
                                 from: sender,
                                 content: data.message.trim(),
-                                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                                time: getPakistanTime()
                         });
                         socket.emit('private-message-sent', { to: data.to });
                 }
@@ -93,7 +102,7 @@ io.on('connection', (socket) => {
                 if (username) {
                         users.delete(socket.id);
                         io.emit('users-list', Array.from(users.values()));
-                        socket.broadcast.emit('user-left', { username });
+                        socket.broadcast.emit('user-left', { username, time: getPakistanTime() });
                         io.emit('user-count', users.size);
                 }
         });

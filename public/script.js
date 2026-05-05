@@ -19,7 +19,7 @@ function joinChat() {
         document.getElementById('loginScreen').style.display = 'none';
         document.getElementById('mainApp').style.display = 'flex';
         document.getElementById('currentUserName').textContent = currentUser;
-        messageInput.focus();
+        setTimeout(() => messageInput.focus(), 100);
 }
 
 socket.on('users-list', (users) => {
@@ -29,12 +29,20 @@ socket.on('users-list', (users) => {
                 container.innerHTML = '<div class="no-users">No others online</div>';
         } else {
                 container.innerHTML = others.map(u => `
-            <div class="user-item" onclick="sendPrivate('${escapeHtml(u)}')">
+            <div class="user-item" data-username="${escapeHtml(u)}">
                 <i class="fas fa-user-circle"></i>
                 <span>${escapeHtml(u)}</span>
-                <i class="fas fa-envelope"></i>
+                <i class="fas fa-envelope private-icon"></i>
             </div>
         `).join('');
+
+                document.querySelectorAll('.user-item').forEach(item => {
+                        item.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                const username = item.getAttribute('data-username');
+                                sendPrivateMessage(username);
+                        });
+                });
         }
 });
 
@@ -81,7 +89,7 @@ socket.on('private-message', ({ from, content, time }) => {
 });
 
 socket.on('private-message-sent', ({ to }) => {
-        addSystemMessage(`Private to ${to}`);
+        addSystemMessage(`Private message sent to ${to}`);
 });
 
 function sendMessage() {
@@ -91,6 +99,13 @@ function sendMessage() {
         messageInput.value = '';
         messageInput.style.height = 'auto';
         messageInput.focus();
+}
+
+function sendPrivateMessage(to) {
+        const msg = prompt(`Send private message to ${to}:`);
+        if (msg && msg.trim()) {
+                socket.emit('private-message', { to, message: msg.trim() });
+        }
 }
 
 function addMessage(username, content, time, msgId) {
@@ -197,7 +212,7 @@ function addPrivateMessage(from, content, time) {
         div.innerHTML = `
         <div class="bubble private-bubble">
             <div class="msg-header">
-                <span class="msg-name">🔒 ${escapeHtml(from)}</span>
+                <span class="msg-name">🔒 ${escapeHtml(from)} (Private)</span>
                 <span class="msg-time">${time}</span>
             </div>
             <div class="msg-text">${escapeHtml(content)}</div>
@@ -207,27 +222,35 @@ function addPrivateMessage(from, content, time) {
         scrollToBottom();
 }
 
+let currentDeleteId = null;
+let currentDeleteIsSent = false;
+
 function showDeleteModal(msgId, isSent) {
-        currentMessageId = msgId;
+        currentDeleteId = msgId;
+        currentDeleteIsSent = isSent;
         const modal = document.getElementById('deleteModal');
-        const firstOption = modal.querySelector('.delete-option:first-child');
-        firstOption.style.display = isSent ? 'flex' : 'none';
+        const forEveryoneOption = modal.querySelector('.delete-option:first-child');
+        forEveryoneOption.style.display = isSent ? 'flex' : 'none';
         modal.classList.add('show');
 }
 
 function deleteForEveryone() {
-        if (currentMessageId) socket.emit('delete-message', { messageId: currentMessageId });
+        if (currentDeleteId && currentDeleteIsSent) {
+                socket.emit('delete-message', { messageId: currentDeleteId });
+        }
         closeDeleteModal();
 }
 
 function deleteForMe() {
-        if (currentMessageId) socket.emit('delete-message', { messageId: currentMessageId });
+        if (currentDeleteId) {
+                socket.emit('delete-message', { messageId: currentDeleteId });
+        }
         closeDeleteModal();
 }
 
 function closeDeleteModal() {
         document.getElementById('deleteModal').classList.remove('show');
-        currentMessageId = null;
+        currentDeleteId = null;
 }
 
 // VOICE RECORDING
@@ -344,30 +367,44 @@ messageInput.addEventListener('keypress', (e) => {
 
 document.getElementById('sendBtn').addEventListener('click', sendMessage);
 
-// SEARCH
-document.getElementById('searchUsers').addEventListener('input', (e) => {
-        const search = e.target.value.toLowerCase();
-        document.querySelectorAll('.user-item').forEach(user => {
-                const name = user.querySelector('span')?.textContent.toLowerCase();
-                user.style.display = name?.includes(search) ? 'flex' : 'none';
+// SEARCH USERS - FIXED
+document.getElementById('searchUsers').addEventListener('input', function (e) {
+        const searchTerm = e.target.value.toLowerCase();
+        const userItems = document.querySelectorAll('.user-item');
+        userItems.forEach(item => {
+                const nameSpan = item.querySelector('span');
+                if (nameSpan) {
+                        const userName = nameSpan.textContent.toLowerCase();
+                        if (userName.includes(searchTerm)) {
+                                item.style.display = 'flex';
+                        } else {
+                                item.style.display = 'none';
+                        }
+                }
         });
 });
 
-// SIDEBAR
+// SIDEBAR TOGGLE - FIXED
 function toggleSidebar() {
-        document.getElementById('sidebar').classList.toggle('open');
-        document.getElementById('overlay').classList.toggle('show');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('show');
 }
+
 function closeSidebar() {
-        document.getElementById('sidebar').classList.remove('open');
-        document.getElementById('overlay').classList.remove('show');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        sidebar.classList.remove('open');
+        overlay.classList.remove('show');
 }
+
 document.getElementById('menuToggle').addEventListener('click', toggleSidebar);
 
-function sendPrivate(to) {
-        const msg = prompt(`Private message to ${to}:`);
-        if (msg?.trim()) socket.emit('private-message', { to, message: msg.trim() });
-}
+// Prevent sidebar close when clicking inside sidebar
+document.getElementById('sidebar').addEventListener('click', (e) => {
+        e.stopPropagation();
+});
 
 function scrollToBottom() {
         setTimeout(() => {
@@ -387,4 +424,4 @@ function escapeHtml(str) {
 }
 
 setTimeout(() => messageInput.focus(), 100);
-console.log('App loaded - Fixed header/footer + Pakistan Time');
+console.log('App loaded - All features working');
