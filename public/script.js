@@ -387,4 +387,4 @@ function escapeHtml(str) {
 }
 
 setTimeout(() => messageInput.focus(), 100);
-console.log('App loaded');
+console.log('App loaded - Fixed header/footer + Pakistan Time');
