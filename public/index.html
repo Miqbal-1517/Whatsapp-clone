@@ -4,9 +4,11 @@
 <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-        <title>WhatsApp Clone - Voice Chat | Muhammad Iqbal</title>
+        <title>WhatsApp Clone - Complete Chat App</title>
         <link rel="stylesheet" href="styles.css">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+        <!-- Emoji Picker CSS -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/emoji-mart/css/emoji-mart.css">
 </head>
 
 <body>
@@ -16,7 +18,7 @@
                         <div class="logo">
                                 <i class="fab fa-whatsapp"></i>
                                 <h2>WhatsApp Clone</h2>
-                                <p class="subtitle">Real Time Chat with Voice Messages</p>
+                                <p class="subtitle">Complete Chat Application</p>
                         </div>
                         <input type="text" id="username" placeholder="Enter your username" maxlength="20"
                                 autocomplete="off">
@@ -40,7 +42,7 @@
                                                 <span class="online-status">Online</span>
                                         </div>
                                 </div>
-                                <button id="close-sidebar" class="close-sidebar" onclick="toggleSidebar()">
+                                <button class="close-sidebar" onclick="toggleSidebar()">
                                         <i class="fas fa-times"></i>
                                 </button>
                                 <div class="developer-badge">
@@ -61,7 +63,7 @@
                 <!-- Main Chat Area -->
                 <div class="chat-area">
                         <div class="chat-header">
-                                <button id="menu-btn" class="menu-btn" onclick="toggleSidebar()">
+                                <button class="menu-btn" onclick="toggleSidebar()">
                                         <i class="fas fa-bars"></i>
                                 </button>
                                 <div class="chat-header-info">
@@ -69,8 +71,8 @@
                                         <div>
                                                 <h3 style="margin: 0;">Group Chat</h3>
                                                 <small style="font-size: 10px; color: #25D366; display: block;">
-                                                        <i class="fas fa-code"></i> Created by Muhammad Iqbal | Director
-                                                        of IT Programs, MIT
+                                                        <i class="fas fa-code"></i> Muhammad Iqbal | Director of IT
+                                                        Programs, MIT
                                                 </small>
                                         </div>
                                 </div>
@@ -82,35 +84,40 @@
                                         <i class="fab fa-whatsapp"></i>
                                         <h3>Welcome to WhatsApp Clone!</h3>
                                         <p>Start your conversation now</p>
-                                        <p style="margin-top: 10px; font-size: 12px;">
-                                                <i class="fas fa-microphone"></i> Press & hold mic to record voice
-                                                message
-                                        </p>
-                                        <div
-                                                style="margin-top: 20px; padding: 10px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 12px;">
-                                                <i class="fas fa-code" style="color: #667eea;"></i>
-                                                <span style="font-size: 11px; color: #666;">Created by </span>
-                                                <strong style="color: #25D366;">Muhammad Iqbal</strong>
-                                                <span style="font-size: 11px; color: #666;"> | Director of IT Programs,
-                                                        MIT</span>
+                                        <div class="feature-list">
+                                                <small>✨ Features: Text | Voice | Files | Emojis | Delete
+                                                        Messages</small>
+                                        </div>
+                                        <div class="app-credit">
+                                                <i class="fas fa-heart" style="color: #ff4444;"></i>
+                                                <strong>Muhammad Iqbal</strong> - Director of IT Programs, MIT
                                         </div>
                                 </div>
                         </div>
 
                         <div class="message-input-container">
                                 <div class="message-input-wrapper">
-                                        <button id="mic-btn" class="mic-btn">
+                                        <button id="attach-btn" class="action-btn">
+                                                <i class="fas fa-paperclip"></i>
+                                        </button>
+                                        <input type="file" id="file-input"
+                                                accept="image/*,video/*,application/pdf,.txt,.doc,.docx" multiple
+                                                style="display: none;">
+                                        <button id="emoji-btn" class="action-btn">
+                                                <i class="far fa-smile-wink"></i>
+                                        </button>
+                                        <button id="mic-btn" class="action-btn mic-btn">
                                                 <i class="fas fa-microphone"></i>
                                         </button>
-                                        <textarea id="message-input" placeholder="Type a message..." maxlength="500"
+                                        <textarea id="message-input" placeholder="Type a message..." maxlength="1000"
                                                 rows="1"></textarea>
                                         <button onclick="sendMessage()" id="send-btn">
                                                 <i class="fas fa-paper-plane"></i>
                                         </button>
                                 </div>
                                 <div id="recording-status" class="recording-status" style="display: none;">
-                                        <i class="fas fa-circle" style="color: #ff4444; font-size: 10px;"></i>
-                                        Recording... Release to send
+                                        <i class="fas fa-circle" style="color: #ff4444;"></i> Recording... Release to
+                                        send
                                 </div>
                         </div>
                 </div>
@@ -119,6 +126,7 @@
         <div id="overlay" class="overlay" onclick="toggleSidebar()"></div>
 
         <script src="/socket.io/socket.io.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/emoji-mart/js/emoji-mart.min.js"></script>
         <script src="script.js"></script>
 </body>
 
