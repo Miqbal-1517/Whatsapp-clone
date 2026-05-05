@@ -1,6 +1,7 @@
 const socket = io();
 let currentUser = '';
-let currentMessageId = null;
+let currentDeleteId = null;
+let currentDeleteIsSent = false;
 let mediaRecorder = null;
 let audioChunks = [];
 let isRecording = false;
@@ -10,6 +11,9 @@ const messagesContainer = document.getElementById('messagesContainer');
 const messagesArea = document.getElementById('messagesArea');
 const micBtn = document.getElementById('micBtn');
 const recordingStatus = document.getElementById('recordingStatus');
+const sidebar = document.getElementById('sidebar');
+const menuToggle = document.getElementById('menuToggle');
+const closeSidebarBtn = document.getElementById('closeSidebarBtn');
 
 function joinChat() {
         const username = document.getElementById('usernameInput').value.trim();
@@ -22,6 +26,7 @@ function joinChat() {
         setTimeout(() => messageInput.focus(), 100);
 }
 
+// Socket events
 socket.on('users-list', (users) => {
         const container = document.getElementById('usersList');
         const others = users.filter(u => u !== currentUser);
@@ -222,9 +227,6 @@ function addPrivateMessage(from, content, time) {
         scrollToBottom();
 }
 
-let currentDeleteId = null;
-let currentDeleteIsSent = false;
-
 function showDeleteModal(msgId, isSent) {
         currentDeleteId = msgId;
         currentDeleteIsSent = isSent;
@@ -253,7 +255,7 @@ function closeDeleteModal() {
         currentDeleteId = null;
 }
 
-// VOICE RECORDING
+// Voice Recording
 micBtn.addEventListener('touchstart', startRecord);
 micBtn.addEventListener('mousedown', startRecord);
 micBtn.addEventListener('touchend', stopRecord);
@@ -286,7 +288,7 @@ function stopRecord() {
         if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
 }
 
-// FILE ATTACH
+// File Attach
 document.getElementById('attachBtn').addEventListener('click', () => {
         document.getElementById('fileInput').click();
 });
@@ -314,7 +316,7 @@ function downloadFile(url, name) {
         a.click();
 }
 
-// EMOJI PICKER
+// Emoji Picker
 let emojiOpen = false;
 document.getElementById('emojiBtn').addEventListener('click', () => {
         if (emojiOpen) return;
@@ -349,7 +351,7 @@ document.getElementById('emojiBtn').addEventListener('click', () => {
         }, 100);
 });
 
-// INPUT HANDLERS
+// Input handlers
 messageInput.addEventListener('input', function () {
         this.style.height = 'auto';
         this.style.height = Math.min(this.scrollHeight, 80) + 'px';
@@ -367,7 +369,7 @@ messageInput.addEventListener('keypress', (e) => {
 
 document.getElementById('sendBtn').addEventListener('click', sendMessage);
 
-// SEARCH USERS - FIXED
+// Search users
 document.getElementById('searchUsers').addEventListener('input', function (e) {
         const searchTerm = e.target.value.toLowerCase();
         const userItems = document.querySelectorAll('.user-item');
@@ -384,27 +386,20 @@ document.getElementById('searchUsers').addEventListener('input', function (e) {
         });
 });
 
-// SIDEBAR TOGGLE - FIXED
-function toggleSidebar() {
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('overlay');
-        sidebar.classList.toggle('open');
-        overlay.classList.toggle('show');
+// Sidebar functions
+function openSidebar() {
+        sidebar.classList.add('open');
 }
 
 function closeSidebar() {
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('overlay');
         sidebar.classList.remove('open');
-        overlay.classList.remove('show');
 }
 
-document.getElementById('menuToggle').addEventListener('click', toggleSidebar);
+menuToggle.addEventListener('click', openSidebar);
+closeSidebarBtn.addEventListener('click', closeSidebar);
 
-// Prevent sidebar close when clicking inside sidebar
-document.getElementById('sidebar').addEventListener('click', (e) => {
-        e.stopPropagation();
-});
+// Close sidebar when clicking outside on overlay? No overlay now - only close button closes it
+// But we want it to close when clicking outside? Let's not - only close button
 
 function scrollToBottom() {
         setTimeout(() => {
@@ -424,4 +419,4 @@ function escapeHtml(str) {
 }
 
 setTimeout(() => messageInput.focus(), 100);
-console.log('App loaded - All features working');
+console.log('App loaded - Mobile optimized');

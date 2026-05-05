@@ -22,20 +22,8 @@
         </div>
 
         <div id="mainApp" class="main-app" style="display: none;">
-                <div id="sidebar" class="sidebar">
-                        <div class="sidebar-header">
-                                <div><i class="fas fa-user-circle"></i> <span id="currentUserName"></span></div>
-                                <div><i class="fas fa-circle online-dot"></i> <span id="onlineCount">0</span></div>
-                        </div>
-                        <div class="search-box">
-                                <i class="fas fa-search"></i>
-                                <input type="text" id="searchUsers" placeholder="Search">
-                        </div>
-                        <div id="usersList" class="users-list"></div>
-                        <div class="sidebar-footer">Muhammad Iqbal | Director IT, MIT</div>
-                </div>
-
-                <div class="chat-area">
+                <div class="chat-container">
+                        <!-- HEADER - FIXED -->
                         <div class="chat-header">
                                 <button id="menuToggle" class="menu-toggle">☰</button>
                                 <div class="chat-title">
@@ -47,6 +35,7 @@
                                 </div>
                         </div>
 
+                        <!-- MESSAGES - SCROLLABLE -->
                         <div class="messages-area" id="messagesArea">
                                 <div id="messagesContainer">
                                         <div class="welcome-screen">
@@ -58,6 +47,7 @@
                                 </div>
                         </div>
 
+                        <!-- INPUT - FIXED -->
                         <div class="fixed-input">
                                 <div class="input-row">
                                         <button id="attachBtn" class="icon-btn"><i
@@ -77,9 +67,22 @@
                                 <div id="recordingStatus" class="recording-status">🔴 Recording...</div>
                         </div>
                 </div>
-        </div>
 
-        <div id="overlay" class="overlay" onclick="closeSidebar()"></div>
+                <!-- SIDEBAR - SEPARATE LAYER -->
+                <div id="sidebar" class="sidebar">
+                        <div class="sidebar-header">
+                                <div><i class="fas fa-user-circle"></i> <span id="currentUserName"></span></div>
+                                <div><i class="fas fa-circle online-dot"></i> <span id="onlineCount">0</span></div>
+                                <button id="closeSidebarBtn" class="close-sidebar-btn">✕</button>
+                        </div>
+                        <div class="search-box">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="searchUsers" placeholder="Search users...">
+                        </div>
+                        <div id="usersList" class="users-list"></div>
+                        <div class="sidebar-footer">Muhammad Iqbal | Director IT, MIT</div>
+                </div>
+        </div>
 
         <div id="deleteModal" class="delete-modal">
                 <div class="delete-modal-content">
