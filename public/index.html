@@ -4,100 +4,134 @@
 <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-        <title>WhatsApp Clone - Muhammad Iqbal | MIT</title>
+        <title>WhatsApp Clone</title>
         <link rel="stylesheet" href="styles.css">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 
 <body>
         <!-- Login Screen -->
-        <div id="login-container" class="login-container">
+        <div id="login-screen" class="login-screen">
                 <div class="login-card">
-                        <div class="logo">
+                        <div class="login-logo">
                                 <i class="fab fa-whatsapp"></i>
                                 <h2>WhatsApp Clone</h2>
-                                <p class="subtitle">Complete Chat Application</p>
                         </div>
-                        <input type="text" id="username" placeholder="Enter username" maxlength="20" autocomplete="off">
-                        <button onclick="joinChat()">Join Chat <i class="fas fa-arrow-right"></i></button>
-                        <div class="developer-credit">
-                                <i class="fas fa-code"></i> Created by <strong>Muhammad Iqbal</strong><br>
-                                <small>Director of IT Programs, MIT</small>
+                        <input type="text" id="username" placeholder="Enter your username" maxlength="20">
+                        <button onclick="joinChat()">Start Chat <i class="fas fa-arrow-right"></i></button>
+                        <div class="login-credit">
+                                <i class="fas fa-code"></i> Muhammad Iqbal | Director IT, MIT
                         </div>
                 </div>
         </div>
 
-        <!-- Chat Container -->
-        <div id="chat-container" class="chat-container" style="display: none;">
-                <!-- Sidebar -->
+        <!-- Main App - Exact WhatsApp Layout -->
+        <div id="app" class="app" style="display: none;">
+                <!-- Sidebar (User list) -->
                 <div id="sidebar" class="sidebar">
                         <div class="sidebar-header">
-                                <div class="user-info">
+                                <div class="sidebar-user">
                                         <i class="fas fa-user-circle"></i>
-                                        <div class="user-details">
-                                                <span id="current-user" class="current-username"></span>
-                                                <span class="online-status">Online</span>
-                                        </div>
+                                        <span id="current-user-name"></span>
                                 </div>
-                                <button class="close-sidebar" onclick="toggleSidebar()">✕</button>
-                                <div class="developer-badge">
-                                        <i class="fas fa-crown"></i> Muhammad Iqbal<br>
-                                        <small>Director of IT Programs, MIT</small>
+                                <div class="sidebar-status">
+                                        <i class="fas fa-circle online-dot"></i>
+                                        <span id="online-count">0</span>
                                 </div>
                         </div>
-                        <div class="online-count-box">
-                                <i class="fas fa-circle online-icon"></i>
-                                <span id="online-count">0</span> Online
+                        <div class="sidebar-search">
+                                <i class="fas fa-search"></i>
+                                <input type="text" placeholder="Search or start new chat" id="search-users">
                         </div>
-                        <div class="users-list">
-                                <h3><i class="fas fa-users"></i> Active Users</h3>
+                        <div class="sidebar-users" id="users-list-container">
                                 <div id="users-list"></div>
+                        </div>
+                        <div class="sidebar-footer">
+                                <i class="fas fa-crown"></i> Muhammad Iqbal | Director IT, MIT
                         </div>
                 </div>
 
-                <!-- Chat Area -->
-                <div class="chat-area">
+                <!-- Main Chat Area -->
+                <div class="chat-main">
+                        <!-- Fixed Header -->
                         <div class="chat-header">
                                 <button class="menu-btn" onclick="toggleSidebar()">☰</button>
                                 <div class="chat-header-info">
-                                        <i class="fas fa-comments"></i>
+                                        <i class="fab fa-whatsapp"></i>
                                         <div>
                                                 <h3>Group Chat</h3>
-                                                <small>Muhammad Iqbal | Director IT, MIT</small>
+                                                <span id="typing-indicator" class="typing-indicator"></span>
                                         </div>
                                 </div>
-                                <div id="typing-indicator" class="typing-indicator"></div>
-                        </div>
-
-                        <div class="messages-container" id="messages-container">
-                                <div class="welcome-message">
-                                        <i class="fab fa-whatsapp"></i>
-                                        <h3>Welcome!</h3>
-                                        <p>Start chatting now</p>
-                                        <div class="features">
-                                                ✨ Text | Voice | Files | Emojis | Delete
-                                        </div>
+                                <div class="chat-header-icons">
+                                        <i class="fas fa-search"></i>
+                                        <i class="fas fa-ellipsis-v"></i>
                                 </div>
                         </div>
 
-                        <div class="message-input-container">
-                                <div class="message-input-wrapper">
-                                        <button id="attach-btn" class="action-btn">📎</button>
+                        <!-- ONLY Messages Scroll Here - Fixed Header & Input -->
+                        <div class="messages-area" id="messages-area">
+                                <div id="messages-container">
+                                        <div class="welcome-chat">
+                                                <i class="fab fa-whatsapp"></i>
+                                                <h3>WhatsApp Clone</h3>
+                                                <p>Send messages, voice notes, files & emojis</p>
+                                                <div class="welcome-credit">
+                                                        <strong>Muhammad Iqbal</strong><br>
+                                                        <small>Director of IT Programs, MIT</small>
+                                                </div>
+                                        </div>
+                                </div>
+                        </div>
+
+                        <!-- Fixed Input Area (Exactly WhatsApp Style) -->
+                        <div class="input-area">
+                                <div class="input-wrapper">
+                                        <button id="attach-btn" class="input-icon" title="Attach">
+                                                <i class="fas fa-paperclip"></i>
+                                        </button>
                                         <input type="file" id="file-input" multiple style="display: none;">
-                                        <button id="emoji-btn" class="action-btn">😊</button>
-                                        <button id="mic-btn" class="action-btn mic-btn">🎤</button>
-                                        <textarea id="message-input" placeholder="Type a message..."
-                                                rows="1"></textarea>
-                                        <button onclick="sendMessage()" id="send-btn">📤</button>
+
+                                        <button id="emoji-btn" class="input-icon" title="Emoji">
+                                                <i class="far fa-smile-wink"></i>
+                                        </button>
+
+                                        <div class="message-input-wrapper">
+                                                <textarea id="message-input" placeholder="Type a message"
+                                                        rows="1"></textarea>
+                                        </div>
+
+                                        <button id="mic-btn" class="input-icon mic-icon" title="Voice message">
+                                                <i class="fas fa-microphone"></i>
+                                        </button>
+
+                                        <button onclick="sendMessage()" id="send-btn" class="send-btn" title="Send">
+                                                <i class="fas fa-paper-plane"></i>
+                                        </button>
                                 </div>
-                                <div id="recording-status" class="recording-status" style="display: none;">
-                                        🔴 Recording... Release to send
+                                <div id="recording-status" class="recording-status">🔴 Recording... Release to send
                                 </div>
                         </div>
                 </div>
         </div>
 
-        <div id="overlay" class="overlay" onclick="toggleSidebar()"></div>
+        <!-- Mobile Sidebar Overlay -->
+        <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+        <!-- Delete Modal (WhatsApp Style) -->
+        <div id="delete-modal" class="delete-modal">
+                <div class="delete-modal-content">
+                        <div class="delete-option" onclick="deleteMessageConfirm('everyone')">
+                                <i class="fas fa-trash-alt"></i> Delete for everyone
+                        </div>
+                        <div class="delete-option" onclick="deleteMessageConfirm('me')">
+                                <i class="fas fa-user-slash"></i> Delete for me
+                        </div>
+                        <div class="delete-option cancel" onclick="closeDeleteModal()">
+                                Cancel
+                        </div>
+                </div>
+        </div>
 
         <script src="/socket.io/socket.io.js"></script>
         <script src="script.js"></script>

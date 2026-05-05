@@ -1,30 +1,27 @@
 const socket = io();
 let currentUser = '';
 let mediaRecorder, audioChunks = [], isRecording = false;
-let selectedFiles = [];
+let currentMessageToDelete = null;
+let longPressTimer = null;
 
 // DOM Elements
 const messageInput = document.getElementById('message-input');
 const messagesContainer = document.getElementById('messages-container');
+const messagesArea = document.getElementById('messages-area');
 
 // ========== JOIN CHAT ==========
 function joinChat() {
         const username = document.getElementById('username').value.trim();
-        if (!username) return alert('Enter username');
+        if (!username) return alert('Please enter username');
 
         currentUser = username;
         socket.emit('user-join', username);
 
-        document.getElementById('login-container').style.display = 'none';
-        document.getElementById('chat-container').style.display = 'flex';
-        document.getElementById('current-user').textContent = currentUser;
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('app').style.display = 'flex';
+        document.getElementById('current-user-name').textContent = currentUser;
         messageInput?.focus();
 }
-
-// ========== PREVIOUS MESSAGES ==========
-socket.on('previous-messages', (msgs) => {
-        msgs.forEach(msg => { if (!msg.deleted) renderMessage(msg); });
-});
 
 // ========== USER LIST ==========
 socket.on('users-list', (users) => {
@@ -32,11 +29,13 @@ socket.on('users-list', (users) => {
         const others = users.filter(u => u !== currentUser);
 
         if (others.length === 0) {
-                container.innerHTML = '<div class="user-item">👤 No others online</div>';
+                container.innerHTML = '<div class="no-users">No other users online</div>';
         } else {
                 container.innerHTML = others.map(u => `
             <div class="user-item" onclick="sendPrivateMessage('${escapeHtml(u)}')">
-                👤 <span class="user-name">${escapeHtml(u)}</span> ✉️
+                <i class="fas fa-user-circle"></i>
+                <span class="user-name">${escapeHtml(u)}</span>
+                <i class="fas fa-envelope private-icon"></i>
             </div>
         `).join('');
         }
@@ -47,29 +46,28 @@ socket.on('user-count', (count) => {
 });
 
 socket.on('user-joined', (data) => {
-        addSystemMessage(`✨ ${escapeHtml(data.username)} joined the chat`);
+        addSystemMessage(`${escapeHtml(data.username)} joined`);
 });
 
 socket.on('user-left', (data) => {
-        addSystemMessage(`👋 ${escapeHtml(data.username)} left the chat`);
+        addSystemMessage(`${escapeHtml(data.username)} left`);
 });
 
-// ========== TEXT MESSAGES ==========
+// ========== MESSAGE HANDLERS ==========
 socket.on('receive-message', (msg) => renderMessage(msg));
-
-// ========== VOICE MESSAGES ==========
 socket.on('receive-voice', (data) => renderMessage(data));
-
-// ========== FILE MESSAGES ==========
 socket.on('receive-file', (data) => renderMessage(data));
 
 // ========== DELETE MESSAGE ==========
-socket.on('message-deleted', ({ messageId, deletedFor }) => {
+socket.on('message-deleted', ({ messageId, deleteFor }) => {
         const el = document.querySelector(`[data-id="${messageId}"]`);
         if (el) {
-                if (deletedFor === 'everyone') {
-                        el.querySelector('.message-text').innerHTML = '🗑️ This message was deleted';
-                        el.classList.add('deleted');
+                if (deleteFor === 'everyone') {
+                        const contentDiv = el.querySelector('.message-bubble');
+                        if (contentDiv) {
+                                contentDiv.innerHTML = '<span class="deleted-text"><i class="fas fa-trash-alt"></i> This message was deleted</span>';
+                                contentDiv.classList.add('deleted');
+                        }
                 } else {
                         el.remove();
                 }
@@ -81,9 +79,9 @@ let typingTimeout;
 socket.on('user-typing', ({ username, isTyping }) => {
         const indicator = document.getElementById('typing-indicator');
         if (isTyping && username !== currentUser) {
-                indicator.textContent = `${username} is typing...`;
+                indicator.innerHTML = `${username} is typing...`;
         } else {
-                indicator.textContent = '';
+                indicator.innerHTML = '';
         }
 });
 
@@ -117,42 +115,58 @@ function renderMessage(msg) {
         const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
         let contentHtml = '';
-        if (msg.deleted) {
-                contentHtml = '<div class="message-text deleted">🗑️ Deleted</div>';
-        } else if (msg.type === 'voice') {
+        if (msg.type === 'voice') {
                 contentHtml = `<audio controls src="${msg.audio}"></audio>`;
         } else if (msg.type === 'file') {
                 contentHtml = getFileHtml(msg);
         } else {
-                contentHtml = `<div class="message-text">${escapeHtml(msg.content)}</div>`;
+                contentHtml = `<span>${escapeHtml(msg.content)}</span>`;
         }
 
         div.innerHTML = `
-        <div class="message-header">
-            <span class="username">${escapeHtml(msg.username)}</span>
-            <span class="time">${time}</span>
-            <span class="delete-btn" onclick="deleteMsg('${msg.messageId}', ${isSent})">🗑️</span>
+        <div class="message-bubble ${isSent ? 'sent-bubble' : 'received-bubble'}">
+            <div class="message-header">
+                <span class="msg-username">${escapeHtml(msg.username)}</span>
+                <span class="msg-time">${time}</span>
+            </div>
+            <div class="msg-content">${contentHtml}</div>
         </div>
-        ${contentHtml}
     `;
 
-        messagesContainer.appendChild(div);
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        // Add delete on long press (mobile) / right click (desktop)
+        div.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                showDeleteModal(msg.messageId, isSent);
+        });
 
-        const welcome = messagesContainer.querySelector('.welcome-message');
-        if (welcome) welcome.remove();
+        // Long press for mobile
+        div.addEventListener('touchstart', () => {
+                longPressTimer = setTimeout(() => {
+                        showDeleteModal(msg.messageId, isSent);
+                }, 500);
+        });
+        div.addEventListener('touchend', () => clearTimeout(longPressTimer));
+        div.addEventListener('touchmove', () => clearTimeout(longPressTimer));
+
+        messagesContainer.appendChild(div);
+        scrollToBottom();
+
+        // Remove welcome
+        const welcome = messagesContainer.querySelector('.welcome-chat');
+        if (welcome && messagesContainer.children.length > 1) welcome.remove();
 }
 
 function getFileHtml(f) {
         if (f.fileType?.startsWith('image/')) {
-                return `<img src="${f.fileData}" class="file-img" onclick="window.open(this.src)">`;
+                return `<img src="${f.fileData}" class="file-preview" onclick="window.open(this.src)">`;
         } else if (f.fileType?.startsWith('video/')) {
-                return `<video controls src="${f.fileData}" class="file-video"></video>`;
+                return `<video controls src="${f.fileData}" class="file-preview"></video>`;
         } else {
                 return `
             <div class="file-attach">
-                📄 <span>${escapeHtml(f.filename)} (${(f.fileSize / 1024).toFixed(1)} KB)</span>
-                <button onclick="downloadFile('${f.fileData}', '${f.filename}')">⬇️</button>
+                <i class="fas fa-file"></i>
+                <span>${escapeHtml(f.filename)} (${(f.fileSize / 1024).toFixed(1)} KB)</span>
+                <button onclick="downloadFile('${f.fileData}', '${f.filename}')" class="download-btn">Download</button>
             </div>
         `;
         }
@@ -165,35 +179,62 @@ function downloadFile(url, name) {
         a.click();
 }
 
-function deleteMsg(messageId, isSent) {
-        const choice = prompt('Delete:\n1 - For me\n2 - For everyone');
-        if (choice === '1') socket.emit('delete-for-me', messageId);
-        else if (choice === '2' && isSent) socket.emit('delete-message', messageId);
+// ========== DELETE MODAL (WhatsApp Style) ==========
+function showDeleteModal(messageId, isSent) {
+        currentMessageToDelete = { messageId, isSent };
+        const modal = document.getElementById('delete-modal');
+        const options = modal.querySelectorAll('.delete-option');
+
+        // Show/hide "delete for everyone" based on if user sent the message
+        options[0].style.display = isSent ? 'flex' : 'none';
+
+        modal.classList.add('show');
 }
 
+function deleteMessageConfirm(deleteFor) {
+        if (deleteFor === 'everyone' && currentMessageToDelete?.isSent) {
+                socket.emit('delete-message', { messageId: currentMessageToDelete.messageId, deleteFor: 'everyone' });
+        } else if (deleteFor === 'me') {
+                socket.emit('delete-message', { messageId: currentMessageToDelete.messageId, deleteFor: 'me' });
+        }
+        closeDeleteModal();
+}
+
+function closeDeleteModal() {
+        document.getElementById('delete-modal').classList.remove('show');
+        currentMessageToDelete = null;
+}
+
+function scrollToBottom() {
+        messagesArea.scrollTop = messagesArea.scrollHeight;
+}
+
+// ========== SYSTEM MESSAGES ==========
 function addSystemMessage(text) {
         const div = document.createElement('div');
-        div.className = 'system-msg';
-        div.textContent = text;
+        div.className = 'system-message';
+        div.innerHTML = `<span>${escapeHtml(text)}</span>`;
         messagesContainer.appendChild(div);
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        const welcome = messagesContainer.querySelector('.welcome-message');
+        scrollToBottom();
+        const welcome = messagesContainer.querySelector('.welcome-chat');
         if (welcome) welcome.remove();
 }
 
 function addPrivateMessage(from, msg, ts) {
         const div = document.createElement('div');
         div.className = 'message private';
-        const time = new Date(ts).toLocaleTimeString();
+        const time = new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         div.innerHTML = `
-        <div class="message-header">
-            <span class="username">🔒 ${escapeHtml(from)} (Private)</span>
-            <span class="time">${time}</span>
+        <div class="message-bubble private-bubble">
+            <div class="message-header">
+                <span class="msg-username">🔒 ${escapeHtml(from)} (Private)</span>
+                <span class="msg-time">${time}</span>
+            </div>
+            <div class="msg-content">${escapeHtml(msg)}</div>
         </div>
-        <div class="message-text">${escapeHtml(msg)}</div>
     `;
         messagesContainer.appendChild(div);
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        scrollToBottom();
 }
 
 function sendPrivateMessage(to) {
@@ -222,24 +263,22 @@ function startRecording(e) {
                                 const blob = new Blob(audioChunks, { type: 'audio/webm' });
                                 const reader = new FileReader();
                                 reader.onloadend = () => {
-                                        socket.emit('voice-message', { audio: reader.result, duration: 0 });
+                                        socket.emit('voice-message', { audio: reader.result });
                                 };
                                 reader.readAsDataURL(blob);
                                 stream.getTracks().forEach(t => t.stop());
                                 recordingStatus.style.display = 'none';
+                                micBtn.classList.remove('recording');
                         };
                         mediaRecorder.start();
-                        isRecording = true;
                         micBtn.classList.add('recording');
                         recordingStatus.style.display = 'block';
-                }).catch(() => alert('Microphone permission needed'));
+                }).catch(() => alert('Microphone access needed'));
 }
 
 function stopRecording() {
-        if (mediaRecorder && isRecording) {
+        if (mediaRecorder && mediaRecorder.state === 'recording') {
                 mediaRecorder.stop();
-                isRecording = false;
-                micBtn.classList.remove('recording');
         }
 }
 
@@ -273,7 +312,7 @@ document.getElementById('emoji-btn')?.addEventListener('click', () => {
         picker.className = 'emoji-picker';
         const emojis = '😀😃😄😁😆😅😂🤣😊😇🙂🙃😉😍🥰😘😗😙😚😋😛😜🤪😝🤑🤗🤩🥳😎🤓🧐😒😞😔😟😕🙁☹️😣😖😫😩🥺😢😭😤😠😡🤬🤯😳🥵🥶😱😨😰😥😓🤗🤔🤭🤫🤥😶😐😑😬🙄😯😦😧😮😲🥱😴🤤😪😵🤐🥴🤢🤮🤧😷🤒🤕🤑🤠😈👿👹👺💀👻🤖💩😺😸😹😻😼😽🙀😿😾❤️🧡💛💚💙💜🖤🤍🤎💔❣️💕💞💓💗💖💘💝💟👍👎👌✌️🤞🤟🤘👊💪🦾🖕👆👇👈👉🖐️🤙';
         picker.innerHTML = `<div class="emoji-grid">${emojis.split('').map(e => `<span class="emoji">${e}</span>`).join('')}</div>`;
-        picker.style.cssText = 'position:fixed;bottom:80px;left:10px;background:#fff;border-radius:12px;padding:10px;box-shadow:0 4px 12px rgba(0,0,0,0.15);z-index:1000;max-width:280px;max-height:200px;overflow-y:auto;';
+        picker.style.cssText = 'position:fixed;bottom:80px;left:70px;background:#fff;border-radius:12px;padding:10px;box-shadow:0 4px 12px rgba(0,0,0,0.15);z-index:1000;max-width:280px;max-height:200px;overflow-y:auto;';
         document.body.appendChild(picker);
         emojiOpen = true;
 
@@ -295,13 +334,13 @@ document.getElementById('emoji-btn')?.addEventListener('click', () => {
         });
 });
 
-// ========== AUTO RESIZE ==========
+// ========== AUTO RESIZE TEXTAREA ==========
 messageInput?.addEventListener('input', function () {
         this.style.height = 'auto';
         this.style.height = Math.min(this.scrollHeight, 100) + 'px';
 });
 
-// ========== TYPING SEND ==========
+// ========== TYPING ==========
 let typingTimer;
 messageInput?.addEventListener('input', () => {
         socket.emit('typing', true);
@@ -316,13 +355,21 @@ messageInput?.addEventListener('keypress', (e) => {
         }
 });
 
-// ========== SIDEBAR ==========
-function toggleSidebar() {
-        document.getElementById('sidebar')?.classList.toggle('active');
-        document.getElementById('overlay')?.classList.toggle('active');
-}
+// ========== SEARCH USERS ==========
+document.getElementById('search-users')?.addEventListener('input', (e) => {
+        const search = e.target.value.toLowerCase();
+        const users = document.querySelectorAll('.user-item');
+        users.forEach(user => {
+                const name = user.querySelector('.user-name')?.textContent.toLowerCase();
+                user.style.display = name?.includes(search) ? 'flex' : 'none';
+        });
+});
 
-document.getElementById('overlay')?.addEventListener('click', toggleSidebar);
+// ========== SIDEBAR TOGGLE ==========
+function toggleSidebar() {
+        document.getElementById('sidebar')?.classList.toggle('open');
+        document.getElementById('sidebar-overlay')?.classList.toggle('show');
+}
 
 function escapeHtml(str) {
         const div = document.createElement('div');
@@ -330,4 +377,7 @@ function escapeHtml(str) {
         return div.innerHTML;
 }
 
-console.log('✅ WhatsApp Clone Fully Loaded - All Features Working');
+// Focus input on load
+setTimeout(() => messageInput?.focus(), 100);
+
+console.log('✅ WhatsApp Clone Fully Loaded');

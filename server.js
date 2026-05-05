@@ -12,9 +12,8 @@ const io = socketIo(server, {
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-const users = new Map(); // socket.id -> username
-const messages = [];
-const MAX_MESSAGES = 100;
+const users = new Map();
+// NO previous messages storage - fresh chat for each session
 
 io.on('connection', (socket) => {
         console.log('🟢 User connected:', socket.id);
@@ -27,9 +26,6 @@ io.on('connection', (socket) => {
                 users.set(socket.id, cleanUsername);
                 socket.username = cleanUsername;
 
-                // Send previous messages to new user
-                socket.emit('previous-messages', messages.slice(-MAX_MESSAGES));
-
                 // Send current users list to ALL
                 const userList = Array.from(users.values());
                 io.emit('users-list', userList);
@@ -37,8 +33,7 @@ io.on('connection', (socket) => {
                 // Broadcast to OTHERS that user joined
                 socket.broadcast.emit('user-joined', {
                         username: cleanUsername,
-                        timestamp: new Date().toISOString(),
-                        id: Date.now()
+                        timestamp: new Date().toISOString()
                 });
 
                 // Update online count for ALL
@@ -61,11 +56,7 @@ io.on('connection', (socket) => {
                         messageId: Date.now() + Math.random()
                 };
 
-                messages.push(message);
-                if (messages.length > MAX_MESSAGES) messages.shift();
-
                 io.emit('receive-message', message);
-                console.log(`💬 ${senderUsername}: ${message.content.substring(0, 30)}`);
         });
 
         // ========== VOICE MESSAGE ==========
@@ -78,16 +69,11 @@ io.on('connection', (socket) => {
                         type: 'voice',
                         username: senderUsername,
                         audio: data.audio,
-                        duration: data.duration || 0,
                         timestamp: new Date().toISOString(),
                         messageId: Date.now() + Math.random()
                 };
 
-                messages.push(voiceData);
-                if (messages.length > MAX_MESSAGES) messages.shift();
-
                 io.emit('receive-voice', voiceData);
-                console.log(`🎙️ ${senderUsername} sent voice message`);
         });
 
         // ========== FILE ATTACHMENT ==========
@@ -107,25 +93,16 @@ io.on('connection', (socket) => {
                         messageId: Date.now() + Math.random()
                 };
 
-                messages.push(fileMsg);
-                if (messages.length > MAX_MESSAGES) messages.shift();
-
                 io.emit('receive-file', fileMsg);
-                console.log(`📎 ${senderUsername} sent file: ${fileData.filename}`);
         });
 
-        // ========== DELETE MESSAGE ==========
-        socket.on('delete-message', (messageId) => {
-                const msgIndex = messages.findIndex(m => m.messageId === messageId);
-                if (msgIndex !== -1) {
-                        messages[msgIndex].deleted = true;
+        // ========== DELETE MESSAGE (WhatsApp style) ==========
+        socket.on('delete-message', ({ messageId, deleteFor }) => {
+                if (deleteFor === 'everyone') {
+                        io.emit('message-deleted', { messageId, deleteFor: 'everyone' });
+                } else {
+                        socket.emit('message-deleted', { messageId, deleteFor: 'me' });
                 }
-                io.emit('message-deleted', { messageId, deletedFor: 'everyone' });
-                console.log(`🗑️ Message deleted: ${messageId}`);
-        });
-
-        socket.on('delete-for-me', (messageId) => {
-                socket.emit('message-deleted', { messageId, deletedFor: 'me' });
         });
 
         // ========== TYPING INDICATOR ==========
@@ -159,15 +136,12 @@ io.on('connection', (socket) => {
                 if (username) {
                         users.delete(socket.id);
 
-                        // Update users list for ALL
                         const userList = Array.from(users.values());
                         io.emit('users-list', userList);
 
-                        // Broadcast user left to OTHERS only
                         socket.broadcast.emit('user-left', {
                                 username: username,
-                                timestamp: new Date().toISOString(),
-                                id: Date.now()
+                                timestamp: new Date().toISOString()
                         });
 
                         io.emit('user-count', users.size);
@@ -178,6 +152,5 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
-        console.log(`🚀 Server running on port ${PORT}`);
-        console.log(`✅ WhatsApp Clone - ALL FEATURES WORKING`);
+        console.log(`🚀 WhatsApp Clone running on port ${PORT}`);
 });
