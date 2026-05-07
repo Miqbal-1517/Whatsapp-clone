@@ -7,7 +7,9 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
         cors: { origin: "*", methods: ["GET", "POST"] },
-        maxHttpBufferSize: 50e6
+        maxHttpBufferSize: 50e6,
+        pingTimeout: 60000,
+        pingInterval: 25000
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -33,7 +35,7 @@ io.on('connection', (socket) => {
                 socket.username = cleanUsername;
 
                 io.emit('users-list', Array.from(users.values()));
-                socket.broadcast.emit('user-joined', { username: cleanUsername, time: getPakistanTime() });
+                socket.broadcast.emit('user-joined', { username: cleanUsername });
                 io.emit('user-count', users.size);
                 console.log(`${cleanUsername} joined. Total: ${users.size}`);
         });
@@ -47,7 +49,6 @@ io.on('connection', (socket) => {
                         content: data.content.trim(),
                         time: getPakistanTime()
                 });
-                console.log(`Message from ${sender}: ${data.content.substring(0, 30)}`);
         });
 
         socket.on('voice-message', (data) => {
@@ -59,7 +60,6 @@ io.on('connection', (socket) => {
                         audio: data.audio,
                         time: getPakistanTime()
                 });
-                console.log(`Voice message from ${sender}`);
         });
 
         socket.on('file-attachment', (fileData) => {
@@ -74,12 +74,10 @@ io.on('connection', (socket) => {
                         fileData: fileData.data,
                         time: getPakistanTime()
                 });
-                console.log(`File from ${sender}: ${fileData.filename}`);
         });
 
         socket.on('delete-message', ({ messageId }) => {
                 io.emit('message-deleted', { messageId });
-                console.log(`Message deleted: ${messageId}`);
         });
 
         socket.on('typing', (isTyping) => {
@@ -99,7 +97,6 @@ io.on('connection', (socket) => {
                                 time: getPakistanTime()
                         });
                         socket.emit('private-message-sent', { to: data.to });
-                        console.log(`Private message from ${sender} to ${data.to}`);
                 }
         });
 
@@ -108,7 +105,7 @@ io.on('connection', (socket) => {
                 if (username) {
                         users.delete(socket.id);
                         io.emit('users-list', Array.from(users.values()));
-                        socket.broadcast.emit('user-left', { username, time: getPakistanTime() });
+                        socket.broadcast.emit('user-left', { username });
                         io.emit('user-count', users.size);
                         console.log(`${username} left. Total: ${users.size}`);
                 }
@@ -118,5 +115,4 @@ io.on('connection', (socket) => {
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
         console.log(`🚀 Server running on port ${PORT}`);
-        console.log(`✅ WhatsApp Clone with ALL features is ready!`);
 });

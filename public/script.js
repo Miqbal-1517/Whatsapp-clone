@@ -5,8 +5,8 @@ let currentDeleteIsSent = false;
 let mediaRecorder = null;
 let audioChunks = [];
 let isRecording = false;
+let typingTimeoutId = null;
 
-// DOM Elements - will be rechecked after DOM ready
 let messageInput = document.getElementById('messageInput');
 let messagesContainer = document.getElementById('messagesContainer');
 let messagesArea = document.getElementById('messagesArea');
@@ -16,7 +16,6 @@ let sidebar = document.getElementById('sidebar');
 let menuToggle = document.getElementById('menuToggle');
 let closeSidebarBtn = document.getElementById('closeSidebarBtn');
 
-// Re-initialize DOM elements after login (when mainApp becomes visible)
 function reinitializeDomElements() {
         messageInput = document.getElementById('messageInput');
         messagesContainer = document.getElementById('messagesContainer');
@@ -27,7 +26,6 @@ function reinitializeDomElements() {
         menuToggle = document.getElementById('menuToggle');
         closeSidebarBtn = document.getElementById('closeSidebarBtn');
 
-        // Re-attach voice recording listeners
         if (micBtn) {
                 micBtn.removeEventListener('touchstart', startRecord);
                 micBtn.removeEventListener('mousedown', startRecord);
@@ -38,14 +36,13 @@ function reinitializeDomElements() {
                 micBtn.addEventListener('mouseleave', stopRecord);
         }
 
-        // Re-attach input handlers
         if (messageInput) {
                 messageInput.addEventListener('input', function () {
                         this.style.height = 'auto';
                         this.style.height = Math.min(this.scrollHeight, 80) + 'px';
                         socket.emit('typing', true);
                         clearTimeout(window.typingTimer);
-                        window.typingTimer = setTimeout(() => socket.emit('typing', false), 1000);
+                        window.typingTimer = setTimeout(() => socket.emit('typing', false), 1500);
                 });
 
                 messageInput.addEventListener('keypress', (e) => {
@@ -56,14 +53,12 @@ function reinitializeDomElements() {
                 });
         }
 
-        // Re-attach send button
         const sendBtn = document.getElementById('sendBtn');
         if (sendBtn) {
                 sendBtn.removeEventListener('click', sendMessage);
                 sendBtn.addEventListener('click', sendMessage);
         }
 
-        // Re-attach attach button
         const attachBtn = document.getElementById('attachBtn');
         const fileInput = document.getElementById('fileInput');
         if (attachBtn) {
@@ -71,10 +66,8 @@ function reinitializeDomElements() {
                 attachBtn.addEventListener('click', () => fileInput.click());
         }
 
-        // Re-attach emoji button
         setupEmojiPicker();
 
-        // Re-attach sidebar
         if (menuToggle && closeSidebarBtn) {
                 menuToggle.removeEventListener('click', openSidebar);
                 closeSidebarBtn.removeEventListener('click', closeSidebar);
@@ -82,14 +75,12 @@ function reinitializeDomElements() {
                 closeSidebarBtn.addEventListener('click', closeSidebar);
         }
 
-        // Force show textbox on mobile
         setTimeout(() => {
                 const inputDiv = document.querySelector('.fixed-input');
                 const textarea = document.getElementById('messageInput');
                 if (inputDiv) {
                         inputDiv.style.display = 'block';
                         inputDiv.style.visibility = 'visible';
-                        console.log('✅ Input forced visible');
                 }
                 if (textarea) {
                         textarea.style.display = 'block';
@@ -108,14 +99,12 @@ function joinChat() {
         document.getElementById('mainApp').style.display = 'flex';
         document.getElementById('currentUserName').textContent = currentUser;
 
-        // Re-initialize DOM elements after chat is visible
         setTimeout(() => {
                 reinitializeDomElements();
                 if (messageInput) messageInput.focus();
         }, 100);
 }
 
-// Socket events
 socket.on('users-list', (users) => {
         const container = document.getElementById('usersList');
         const others = users.filter(u => u !== currentUser);
@@ -172,9 +161,18 @@ socket.on('message-deleted', ({ messageId }) => {
 socket.on('user-typing', ({ username, isTyping }) => {
         const indicator = document.getElementById('typingIndicator');
         if (isTyping && username !== currentUser) {
-                indicator.textContent = `${username} typing...`;
+                if (typingTimeoutId) clearTimeout(typingTimeoutId);
+                indicator.innerHTML = `${escapeHtml(username)} is typing<span class="typing-dots"><span>.</span><span>.</span><span>.</span></span>`;
+                typingTimeoutId = setTimeout(() => {
+                        indicator.innerHTML = '';
+                        typingTimeoutId = null;
+                }, 3000);
         } else {
-                indicator.textContent = '';
+                indicator.innerHTML = '';
+                if (typingTimeoutId) {
+                        clearTimeout(typingTimeoutId);
+                        typingTimeoutId = null;
+                }
         }
 });
 
@@ -350,7 +348,6 @@ function closeDeleteModal() {
         currentDeleteId = null;
 }
 
-// Voice Recording
 function startRecord(e) {
         e.preventDefault();
         navigator.mediaDevices.getUserMedia({ audio: true })
@@ -377,7 +374,6 @@ function stopRecord() {
         if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
 }
 
-// File Attach
 function setupFileAttach() {
         const attachBtn = document.getElementById('attachBtn');
         const fileInput = document.getElementById('fileInput');
@@ -414,7 +410,6 @@ function downloadFile(url, name) {
         a.click();
 }
 
-// Emoji Picker
 let emojiOpen = false;
 function setupEmojiPicker() {
         const emojiBtn = document.getElementById('emojiBtn');
@@ -459,7 +454,6 @@ function emojiClickHandler() {
         }, 100);
 }
 
-// Search users
 document.getElementById('searchUsers')?.addEventListener('input', function (e) {
         const searchTerm = e.target.value.toLowerCase();
         const userItems = document.querySelectorAll('.user-item');
@@ -472,7 +466,6 @@ document.getElementById('searchUsers')?.addEventListener('input', function (e) {
         });
 });
 
-// Sidebar functions
 function openSidebar() {
         if (sidebar) sidebar.classList.add('open');
 }
@@ -498,7 +491,5 @@ function escapeHtml(str) {
         return div.innerHTML;
 }
 
-// Setup file attach on load
 setupFileAttach();
-
 console.log('App loaded - All features working');
