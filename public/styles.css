@@ -10,6 +10,10 @@ body {
     background: #ece5dd;
     height: 100vh;
     overflow: hidden;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    left: 0;
 }
 
 /* LOGIN SCREEN */
@@ -68,15 +72,19 @@ body {
     color: #999;
 }
 
-/* MAIN APP - FULL HEIGHT FLEX LAYOUT */
+/* MAIN APP - FULL FIXED LAYOUT */
 .main-app {
     display: flex;
     height: 100vh;
     width: 100%;
     overflow: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
 }
 
-/* CHAT CONTAINER - FLEX COLUMN (HEADER + MESSAGES + FOOTER) */
+/* CHAT CONTAINER - FULL HEIGHT FLEX */
 .chat-container {
     flex: 1;
     display: flex;
@@ -88,7 +96,7 @@ body {
     background-repeat: repeat;
 }
 
-/* HEADER - FIXED (NEVER SCROLLS) */
+/* HEADER - PERMANENTLY FIXED */
 .chat-header {
     background: #075E54;
     padding: 12px 16px;
@@ -183,7 +191,7 @@ body {
     }
 }
 
-/* MESSAGES AREA - ONLY THIS SCROLLS (TAKES REMAINING SPACE) */
+/* MESSAGES AREA - ONLY THIS SCROLLS */
 .messages-area {
     flex: 1;
     overflow-y: auto;
@@ -198,7 +206,7 @@ body {
     gap: 6px;
 }
 
-/* FOOTER / TEXTBOX - FIXED (NEVER SCROLLS) */
+/* TEXTBOX - PERMANENTLY FIXED */
 .fixed-input {
     flex-shrink: 0;
     background: #f0f0f0;
@@ -631,7 +639,7 @@ audio {
     color: #25D366;
 }
 
-/* MOBILE RESPONSIVE - FIXED HEADER/FOOTER */
+/* MOBILE RESPONSIVE */
 @media (max-width: 768px) {
     .bubble {
         max-width: 85%;
@@ -666,6 +674,16 @@ audio {
 
     .sidebar {
         width: 260px;
+    }
+
+    .fixed-input {
+        flex-shrink: 0;
+        position: relative;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #f0f0f0;
+        padding: 8px 12px;
     }
 
     #messageInput {
