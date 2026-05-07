@@ -10,10 +10,6 @@ body {
     background: #ece5dd;
     height: 100vh;
     overflow: hidden;
-    position: fixed;
-    width: 100%;
-    top: 0;
-    left: 0;
 }
 
 /* LOGIN SCREEN */
@@ -72,31 +68,27 @@ body {
     color: #999;
 }
 
-/* MAIN APP - FIXED HEIGHT FOR MOBILE */
+/* MAIN APP - FULL HEIGHT FLEX LAYOUT */
 .main-app {
     display: flex;
-    height: 100% !important;
+    height: 100vh;
     width: 100%;
     overflow: hidden;
-    position: fixed;
-    top: 0;
-    left: 0;
-    bottom: 0;
 }
 
-/* CHAT CONTAINER - FIXED HEIGHT FOR MOBILE */
+/* CHAT CONTAINER - FLEX COLUMN (HEADER + MESSAGES + FOOTER) */
 .chat-container {
     flex: 1;
     display: flex;
     flex-direction: column;
-    height: 100% !important;
+    height: 100vh;
     overflow: hidden;
     background: #e5ddd5;
     background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgdmlld0JveD0iMCAwIDQwIDQwIiBvcGFjaXR5PSIwLjA0Ij48cGF0aCBmaWxsPSIjMDAwIiBkPSJNMzIgMTJIMTh2MmgxNHY5YTQgNCAwIDAxLTQgNEgxMlYxOEg4djE0YzAgMS4xLjkgMiAyIDJoMjhhMiAyIDAgMDAyLTJWMTJjMC0xLjEtLjktMi0yLTJ6bS0xOC0yaDE0YzEuMSAwIDIgLjkgMiAyVjNoLTE0djctM3oiLz48L3N2Zz4=');
     background-repeat: repeat;
 }
 
-/* HEADER - FIXED */
+/* HEADER - FIXED (NEVER SCROLLS) */
 .chat-header {
     background: #075E54;
     padding: 12px 16px;
@@ -191,7 +183,7 @@ body {
     }
 }
 
-/* MESSAGES AREA - ONLY THIS SCROLLS */
+/* MESSAGES AREA - ONLY THIS SCROLLS (TAKES REMAINING SPACE) */
 .messages-area {
     flex: 1;
     overflow-y: auto;
@@ -206,7 +198,7 @@ body {
     gap: 6px;
 }
 
-/* TEXTBOX - PERMANENTLY FIXED */
+/* FOOTER / TEXTBOX - FIXED (NEVER SCROLLS) */
 .fixed-input {
     flex-shrink: 0;
     background: #f0f0f0;
@@ -639,7 +631,7 @@ audio {
     color: #25D366;
 }
 
-/* MOBILE RESPONSIVE */
+/* MOBILE RESPONSIVE - FIXED HEADER/FOOTER */
 @media (max-width: 768px) {
     .bubble {
         max-width: 85%;
@@ -674,16 +666,6 @@ audio {
 
     .sidebar {
         width: 260px;
-    }
-
-    .fixed-input {
-        flex-shrink: 0;
-        position: relative;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: #f0f0f0;
-        padding: 8px 12px;
     }
 
     #messageInput {
