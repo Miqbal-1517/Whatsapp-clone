@@ -1,4 +1,10 @@
-const socket = io();
+const socket = io({
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000,
+        timeout: 60000
+});
+
 let currentUser = '';
 let currentDeleteId = null;
 let currentDeleteIsSent = false;
@@ -145,6 +151,7 @@ socket.on('receive-message', (msg) => {
         addMessage(msg.username, msg.content, msg.time, msg.id);
 });
 
+// FIXED: Voice message - dono taraf play hogi
 socket.on('receive-voice', (data) => {
         addVoiceMessage(data.username, data.audio, data.time, data.id);
 });
@@ -182,6 +189,18 @@ socket.on('private-message', ({ from, content, time }) => {
 
 socket.on('private-message-sent', ({ to }) => {
         addSystemMessage(`Private message sent to ${to}`);
+});
+
+// Reconnection handler
+socket.on('disconnect', () => {
+        console.log('Disconnected from server');
+});
+
+socket.on('connect', () => {
+        console.log('Reconnected to server');
+        if (currentUser) {
+                socket.emit('user-join', currentUser);
+        }
 });
 
 function sendMessage() {

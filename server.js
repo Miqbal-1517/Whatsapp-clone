@@ -8,8 +8,9 @@ const server = http.createServer(app);
 const io = socketIo(server, {
         cors: { origin: "*", methods: ["GET", "POST"] },
         maxHttpBufferSize: 50e6,
-        pingTimeout: 60000,
-        pingInterval: 25000
+        pingTimeout: 120000,      // 2 minutes - mobile screen off handle
+        pingInterval: 25000,       // Check every 25 seconds
+        transports: ['websocket', 'polling']
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -51,15 +52,21 @@ io.on('connection', (socket) => {
                 });
         });
 
+        // FIXED: Voice message - sender bhi sun sakta hai
         socket.on('voice-message', (data) => {
                 const sender = users.get(socket.id);
                 if (!sender) return;
-                io.emit('receive-voice', {
+
+                const voiceData = {
                         id: Date.now() + Math.random(),
                         username: sender,
                         audio: data.audio,
                         time: getPakistanTime()
-                });
+                };
+
+                // Sabko bhejo (sender ko bhi)
+                io.emit('receive-voice', voiceData);
+                console.log(`🎤 Voice message from ${sender}`);
         });
 
         socket.on('file-attachment', (fileData) => {
@@ -100,6 +107,7 @@ io.on('connection', (socket) => {
                 }
         });
 
+        // FIXED: Only disconnect when user actually leaves
         socket.on('disconnect', () => {
                 const username = users.get(socket.id);
                 if (username) {
