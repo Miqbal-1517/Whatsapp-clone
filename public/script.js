@@ -6,14 +6,98 @@ let mediaRecorder = null;
 let audioChunks = [];
 let isRecording = false;
 
-const messageInput = document.getElementById('messageInput');
-const messagesContainer = document.getElementById('messagesContainer');
-const messagesArea = document.getElementById('messagesArea');
-const micBtn = document.getElementById('micBtn');
-const recordingStatus = document.getElementById('recordingStatus');
-const sidebar = document.getElementById('sidebar');
-const menuToggle = document.getElementById('menuToggle');
-const closeSidebarBtn = document.getElementById('closeSidebarBtn');
+// DOM Elements - will be rechecked after DOM ready
+let messageInput = document.getElementById('messageInput');
+let messagesContainer = document.getElementById('messagesContainer');
+let messagesArea = document.getElementById('messagesArea');
+let micBtn = document.getElementById('micBtn');
+let recordingStatus = document.getElementById('recordingStatus');
+let sidebar = document.getElementById('sidebar');
+let menuToggle = document.getElementById('menuToggle');
+let closeSidebarBtn = document.getElementById('closeSidebarBtn');
+
+// Re-initialize DOM elements after login (when mainApp becomes visible)
+function reinitializeDomElements() {
+        messageInput = document.getElementById('messageInput');
+        messagesContainer = document.getElementById('messagesContainer');
+        messagesArea = document.getElementById('messagesArea');
+        micBtn = document.getElementById('micBtn');
+        recordingStatus = document.getElementById('recordingStatus');
+        sidebar = document.getElementById('sidebar');
+        menuToggle = document.getElementById('menuToggle');
+        closeSidebarBtn = document.getElementById('closeSidebarBtn');
+
+        // Re-attach voice recording listeners
+        if (micBtn) {
+                micBtn.removeEventListener('touchstart', startRecord);
+                micBtn.removeEventListener('mousedown', startRecord);
+                micBtn.addEventListener('touchstart', startRecord);
+                micBtn.addEventListener('mousedown', startRecord);
+                micBtn.addEventListener('touchend', stopRecord);
+                micBtn.addEventListener('mouseup', stopRecord);
+                micBtn.addEventListener('mouseleave', stopRecord);
+        }
+
+        // Re-attach input handlers
+        if (messageInput) {
+                messageInput.addEventListener('input', function () {
+                        this.style.height = 'auto';
+                        this.style.height = Math.min(this.scrollHeight, 80) + 'px';
+                        socket.emit('typing', true);
+                        clearTimeout(window.typingTimer);
+                        window.typingTimer = setTimeout(() => socket.emit('typing', false), 1000);
+                });
+
+                messageInput.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault();
+                                sendMessage();
+                        }
+                });
+        }
+
+        // Re-attach send button
+        const sendBtn = document.getElementById('sendBtn');
+        if (sendBtn) {
+                sendBtn.removeEventListener('click', sendMessage);
+                sendBtn.addEventListener('click', sendMessage);
+        }
+
+        // Re-attach attach button
+        const attachBtn = document.getElementById('attachBtn');
+        const fileInput = document.getElementById('fileInput');
+        if (attachBtn) {
+                attachBtn.removeEventListener('click', () => fileInput.click());
+                attachBtn.addEventListener('click', () => fileInput.click());
+        }
+
+        // Re-attach emoji button
+        setupEmojiPicker();
+
+        // Re-attach sidebar
+        if (menuToggle && closeSidebarBtn) {
+                menuToggle.removeEventListener('click', openSidebar);
+                closeSidebarBtn.removeEventListener('click', closeSidebar);
+                menuToggle.addEventListener('click', openSidebar);
+                closeSidebarBtn.addEventListener('click', closeSidebar);
+        }
+
+        // Force show textbox on mobile
+        setTimeout(() => {
+                const inputDiv = document.querySelector('.fixed-input');
+                const textarea = document.getElementById('messageInput');
+                if (inputDiv) {
+                        inputDiv.style.display = 'block';
+                        inputDiv.style.visibility = 'visible';
+                        console.log('✅ Input forced visible');
+                }
+                if (textarea) {
+                        textarea.style.display = 'block';
+                        textarea.style.visibility = 'visible';
+                        textarea.style.opacity = '1';
+                }
+        }, 500);
+}
 
 function joinChat() {
         const username = document.getElementById('usernameInput').value.trim();
@@ -23,7 +107,12 @@ function joinChat() {
         document.getElementById('loginScreen').style.display = 'none';
         document.getElementById('mainApp').style.display = 'flex';
         document.getElementById('currentUserName').textContent = currentUser;
-        setTimeout(() => messageInput.focus(), 100);
+
+        // Re-initialize DOM elements after chat is visible
+        setTimeout(() => {
+                reinitializeDomElements();
+                if (messageInput) messageInput.focus();
+        }, 100);
 }
 
 // Socket events
@@ -98,6 +187,7 @@ socket.on('private-message-sent', ({ to }) => {
 });
 
 function sendMessage() {
+        if (!messageInput) return;
         const msg = messageInput.value.trim();
         if (!msg) return;
         socket.emit('send-message', { content: msg });
@@ -114,6 +204,7 @@ function sendPrivateMessage(to) {
 }
 
 function addMessage(username, content, time, msgId) {
+        if (!messagesContainer) return;
         const isSent = username === currentUser;
         const div = document.createElement('div');
         div.className = `message ${isSent ? 'sent' : 'received'}`;
@@ -136,6 +227,7 @@ function addMessage(username, content, time, msgId) {
 }
 
 function addVoiceMessage(username, audio, time, msgId) {
+        if (!messagesContainer) return;
         const isSent = username === currentUser;
         const div = document.createElement('div');
         div.className = `message ${isSent ? 'sent' : 'received'}`;
@@ -158,6 +250,7 @@ function addVoiceMessage(username, audio, time, msgId) {
 }
 
 function addFileMessage(file) {
+        if (!messagesContainer) return;
         const isSent = file.username === currentUser;
         const div = document.createElement('div');
         div.className = `message ${isSent ? 'sent' : 'received'}`;
@@ -203,6 +296,7 @@ function addDeleteEvent(div, msgId, isSent) {
 }
 
 function addSystemMessage(text) {
+        if (!messagesContainer) return;
         const div = document.createElement('div');
         div.className = 'system-msg';
         div.innerHTML = `<span>${text}</span>`;
@@ -212,6 +306,7 @@ function addSystemMessage(text) {
 }
 
 function addPrivateMessage(from, content, time) {
+        if (!messagesContainer) return;
         const div = document.createElement('div');
         div.className = 'message received';
         div.innerHTML = `
@@ -256,12 +351,6 @@ function closeDeleteModal() {
 }
 
 // Voice Recording
-micBtn.addEventListener('touchstart', startRecord);
-micBtn.addEventListener('mousedown', startRecord);
-micBtn.addEventListener('touchend', stopRecord);
-micBtn.addEventListener('mouseup', stopRecord);
-micBtn.addEventListener('mouseleave', stopRecord);
-
 function startRecord(e) {
         e.preventDefault();
         navigator.mediaDevices.getUserMedia({ audio: true })
@@ -275,12 +364,12 @@ function startRecord(e) {
                                 reader.onloadend = () => socket.emit('voice-message', { audio: reader.result });
                                 reader.readAsDataURL(blob);
                                 stream.getTracks().forEach(t => t.stop());
-                                recordingStatus.style.display = 'none';
-                                micBtn.classList.remove('recording');
+                                if (recordingStatus) recordingStatus.style.display = 'none';
+                                if (micBtn) micBtn.classList.remove('recording');
                         };
                         mediaRecorder.start();
-                        micBtn.classList.add('recording');
-                        recordingStatus.style.display = 'block';
+                        if (micBtn) micBtn.classList.add('recording');
+                        if (recordingStatus) recordingStatus.style.display = 'block';
                 }).catch(() => alert('Microphone access needed'));
 }
 
@@ -288,37 +377,35 @@ function stopRecord() {
         if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
 }
 
-// FILE ATTACH - FIXED
-document.getElementById('attachBtn').addEventListener('click', () => {
-        document.getElementById('fileInput').click();
-});
-
-document.getElementById('fileInput').addEventListener('change', (e) => {
-        const files = Array.from(e.target.files);
-        if (files.length === 0) return;
-
-        files.forEach(file => {
-                if (file.size > 25 * 1024 * 1024) {
-                        alert(`${file.name} is too large (max 25MB)`);
-                        return;
-                }
-
-                const reader = new FileReader();
-                reader.onload = function (event) {
-                        const fileData = {
-                                filename: file.name,
-                                type: file.type,
-                                size: file.size,
-                                data: event.target.result
-                        };
-                        socket.emit('file-attachment', fileData);
-                        console.log('File sent:', file.name);
-                };
-                reader.readAsDataURL(file);
-        });
-
-        e.target.value = '';
-});
+// File Attach
+function setupFileAttach() {
+        const attachBtn = document.getElementById('attachBtn');
+        const fileInput = document.getElementById('fileInput');
+        if (attachBtn && fileInput) {
+                attachBtn.addEventListener('click', () => fileInput.click());
+                fileInput.addEventListener('change', (e) => {
+                        const files = Array.from(e.target.files);
+                        if (files.length === 0) return;
+                        files.forEach(file => {
+                                if (file.size > 25 * 1024 * 1024) {
+                                        alert(`${file.name} is too large (max 25MB)`);
+                                        return;
+                                }
+                                const reader = new FileReader();
+                                reader.onload = function (event) {
+                                        socket.emit('file-attachment', {
+                                                filename: file.name,
+                                                type: file.type,
+                                                size: file.size,
+                                                data: event.target.result
+                                        });
+                                };
+                                reader.readAsDataURL(file);
+                        });
+                        e.target.value = '';
+                });
+        }
+}
 
 function downloadFile(url, name) {
         const a = document.createElement('a');
@@ -329,7 +416,15 @@ function downloadFile(url, name) {
 
 // Emoji Picker
 let emojiOpen = false;
-document.getElementById('emojiBtn').addEventListener('click', () => {
+function setupEmojiPicker() {
+        const emojiBtn = document.getElementById('emojiBtn');
+        if (!emojiBtn) return;
+
+        emojiBtn.removeEventListener('click', emojiClickHandler);
+        emojiBtn.addEventListener('click', emojiClickHandler);
+}
+
+function emojiClickHandler() {
         if (emojiOpen) return;
         const existing = document.querySelector('.emoji-picker');
         if (existing) existing.remove();
@@ -344,8 +439,10 @@ document.getElementById('emojiBtn').addEventListener('click', () => {
 
         picker.querySelectorAll('.emoji').forEach(emoji => {
                 emoji.addEventListener('click', () => {
-                        messageInput.value += emoji.textContent;
-                        messageInput.focus();
+                        if (messageInput) {
+                                messageInput.value += emoji.textContent;
+                                messageInput.focus();
+                        }
                         picker.remove();
                         emojiOpen = false;
                 });
@@ -360,64 +457,39 @@ document.getElementById('emojiBtn').addEventListener('click', () => {
                         }
                 });
         }, 100);
-});
-
-// Input handlers
-messageInput.addEventListener('input', function () {
-        this.style.height = 'auto';
-        this.style.height = Math.min(this.scrollHeight, 80) + 'px';
-        socket.emit('typing', true);
-        clearTimeout(window.typingTimer);
-        window.typingTimer = setTimeout(() => socket.emit('typing', false), 1000);
-});
-
-messageInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-        }
-});
-
-document.getElementById('sendBtn').addEventListener('click', sendMessage);
+}
 
 // Search users
-document.getElementById('searchUsers').addEventListener('input', function (e) {
+document.getElementById('searchUsers')?.addEventListener('input', function (e) {
         const searchTerm = e.target.value.toLowerCase();
         const userItems = document.querySelectorAll('.user-item');
         userItems.forEach(item => {
                 const nameSpan = item.querySelector('span');
                 if (nameSpan) {
                         const userName = nameSpan.textContent.toLowerCase();
-                        if (userName.includes(searchTerm)) {
-                                item.style.display = 'flex';
-                        } else {
-                                item.style.display = 'none';
-                        }
+                        item.style.display = userName.includes(searchTerm) ? 'flex' : 'none';
                 }
         });
 });
 
 // Sidebar functions
 function openSidebar() {
-        sidebar.classList.add('open');
+        if (sidebar) sidebar.classList.add('open');
 }
 
 function closeSidebar() {
-        sidebar.classList.remove('open');
+        if (sidebar) sidebar.classList.remove('open');
 }
-
-menuToggle.addEventListener('click', openSidebar);
-closeSidebarBtn.addEventListener('click', closeSidebar);
 
 function scrollToBottom() {
         setTimeout(() => {
-                messagesArea.scrollTop = messagesArea.scrollHeight;
+                if (messagesArea) messagesArea.scrollTop = messagesArea.scrollHeight;
         }, 50);
 }
 
 function removeWelcome() {
         const welcome = document.querySelector('.welcome-screen');
-        if (welcome && messagesContainer.children.length > 1) welcome.remove();
+        if (welcome && messagesContainer && messagesContainer.children.length > 1) welcome.remove();
 }
 
 function escapeHtml(str) {
@@ -426,23 +498,7 @@ function escapeHtml(str) {
         return div.innerHTML;
 }
 
-setTimeout(() => messageInput.focus(), 100);
-console.log('App loaded - Header & textbox permanently fixed, file attach working');
-// FORCE SHOW TEXTBOX ON MOBILE
-setTimeout(() => {
-        const inputDiv = document.querySelector('.fixed-input');
-        const textarea = document.getElementById('messageInput');
+// Setup file attach on load
+setupFileAttach();
 
-        if (inputDiv) {
-                inputDiv.style.display = 'block';
-                inputDiv.style.visibility = 'visible';
-                console.log('✅ Input forced visible');
-        }
-
-        if (textarea) {
-                textarea.style.display = 'block';
-                textarea.style.visibility = 'visible';
-                textarea.style.opacity = '1';
-                textarea.focus();
-        }
-}, 500);
+console.log('App loaded - All features working');
